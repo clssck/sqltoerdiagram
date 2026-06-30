@@ -1,0 +1,79 @@
+{
+  "nodes": {
+    "model.jaffle_artifacts.customers": {
+      "columns": {
+        "id": { "name": "id", "type": "integer" },
+        "first_name": { "name": "first_name", "type": "text" },
+        "last_name": { "name": "last_name", "type": "text" }
+      }
+    },
+    "model.jaffle_artifacts.orders": {
+      "columns": {
+        "id": { "name": "id", "type": "integer" },
+        "customer_id": { "name": "customer_id", "type": "integer" },
+        "ordered_at": { "name": "ordered_at", "type": "timestamp" },
+        "status": { "name": "status", "type": "text" }
+      }
+    },
+    "model.jaffle_artifacts.order_items": {
+      "columns": {
+        "id": { "name": "id", "type": "integer" },
+        "order_id": { "name": "order_id", "type": "integer" },
+        "product_id": { "name": "product_id", "type": "integer" },
+        "quantity": { "name": "quantity", "type": "integer" }
+      }
+    },
+    "model.jaffle_artifacts.products": {
+      "columns": {
+        "id": { "name": "id", "type": "integer" },
+        "sku": { "name": "sku", "type": "text" },
+        "name": { "name": "name", "type": "text" }
+      }
+    },
+    "model.jaffle_artifacts.contract_orders": {
+      "columns": {
+        "id": { "name": "id", "type": "integer" },
+        "order_id": { "name": "order_id", "type": "integer" },
+        "customer_id": { "name": "customer_id", "type": "integer" },
+        "product_id": { "name": "product_id", "type": "integer" },
+        "notes": { "name": "notes", "type": "text" }
+      }
+    },
+    "model.jaffle_artifacts.dim_region": {
+      "columns": {
+        "country_code": { "name": "country_code", "type": "text" },
+        "region_code": { "name": "region_code", "type": "text" },
+        "region_name": { "name": "region_name", "type": "text" }
+      }
+    },
+    "model.jaffle_artifacts.fct_sales": {
+      "columns": {
+        "id": { "name": "id", "type": "integer" },
+        "country_code": { "name": "country_code", "type": "text" },
+        "region_code": { "name": "region_code", "type": "text" },
+        "order_ref": { "name": "order_ref", "type": "integer" },
+        "amount": { "name": "amount", "type": "numeric" }
+      }
+    },
+    "model.marketing_pkg.orders": {
+      "columns": {
+        "id": { "name": "id", "type": "integer" },
+        "campaign_id": { "name": "campaign_id", "type": "integer" }
+      }
+    }
+  },
+  "sources": {
+    "source.jaffle_artifacts.raw.customers": {
+      "columns": {
+        "id": { "name": "id", "type": "integer" },
+        "first_name": { "name": "first_name", "type": "text" }
+      }
+    },
+    "source.jaffle_artifacts.raw.orders": {
+      "columns": {
+        "id": { "name": "id", "type": "integer" },
+        "customer_id": { "name": "customer_id", "type": "integer" }
+      }
+    }
+  }
+}

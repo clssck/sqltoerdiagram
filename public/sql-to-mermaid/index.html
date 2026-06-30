@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SQL to Mermaid — Convert SQL Schema to a Mermaid erDiagram</title>
+  <meta name="description" content="Paste SQL CREATE TABLE statements and export a Mermaid erDiagram. Free online SQL → Mermaid converter that also draws the live diagram. Runs in your browser." />
+  <meta name="keywords" content="sql to mermaid, convert sql to mermaid, sql to mermaid erdiagram, generate mermaid from sql, create table to mermaid" />
+  <link rel="canonical" href="https://sqltoerdiagram.com/sql-to-mermaid/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://sqltoerdiagram.com/sql-to-mermaid/" />
+  <meta property="og:title" content="SQL to Mermaid — Convert SQL Schema to a Mermaid erDiagram" />
+  <meta property="og:description" content="Paste SQL CREATE TABLE statements and export a Mermaid erDiagram. Free online SQL → Mermaid converter that also draws the live diagram. Runs in your browser." />
+  <meta property="og:image" content="https://sqltoerdiagram.com/og.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="SQL to Mermaid — Convert SQL Schema to a Mermaid erDiagram" />
+  <meta name="twitter:image" content="https://sqltoerdiagram.com/og.png" />
+  <link rel="icon" href="/favicon.ico" sizes="any" />
+  <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How do I convert SQL to a Mermaid ER diagram?","acceptedAnswer":{"@type":"Answer","text":"Paste your CREATE TABLE statements, then click Export → Mermaid and copy the erDiagram code. Foreign keys become relationships."}},{"@type":"Question","name":"Where can I use the Mermaid output?","acceptedAnswer":{"@type":"Answer","text":"Anywhere Mermaid renders: GitHub & GitLab Markdown, Notion, Obsidian, docs sites, and the Mermaid Live Editor."}},{"@type":"Question","name":"Is my schema uploaded anywhere?","acceptedAnswer":{"@type":"Answer","text":"No. Everything runs locally in your browser — your schema is never uploaded to or stored on any server."}},{"@type":"Question","name":"Is it free?","acceptedAnswer":{"@type":"Answer","text":"Yes. It is completely free and open source, with no account or sign-up required."}}]}
+  </script>
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"SQL to ER Diagram","item":"https://sqltoerdiagram.com/"},{"@type":"ListItem","position":2,"name":"SQL to Mermaid","item":"https://sqltoerdiagram.com/sql-to-mermaid/"}]}
+  </script>
+  <style>
+    :root { --bg:#0e1116; --panel:#161b22; --border:#262d38; --text:#e8edf4; --muted:#9aa4b2; --accent:#5aa7ff; }
+    * { box-sizing:border-box; }
+    html,body { margin:0; }
+    body { background:var(--bg); color:var(--text); font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; line-height:1.6; -webkit-font-smoothing:antialiased; }
+    a { color:var(--accent); text-decoration:none; }
+    a:hover { text-decoration:underline; }
+    .wrap { max-width:820px; margin:0 auto; padding:0 22px; }
+    header { border-bottom:1px solid var(--border); }
+    header .wrap { display:flex; align-items:center; gap:10px; height:58px; }
+    header svg { width:22px; height:22px; color:var(--accent); }
+    header .brand { font-weight:700; color:var(--text); }
+    header nav { margin-left:auto; display:flex; gap:20px; font-size:14px; }
+    .crumb { font-size:13px; color:var(--muted); padding:16px 0 0; }
+    .hero { padding:26px 0 36px; }
+    h1 { font-size:42px; line-height:1.1; letter-spacing:-.02em; margin:0 0 16px; }
+    h1 .a { color:var(--accent); }
+    .lead { font-size:19px; color:var(--muted); max-width:660px; margin:0 0 28px; }
+    .cta { display:inline-block; background:var(--accent); color:#fff; font-weight:600; font-size:16px; padding:13px 24px; border-radius:10px; }
+    .cta:hover { filter:brightness(1.08); text-decoration:none; }
+    .cta.alt { background:transparent; color:var(--accent); border:1px solid var(--border); margin-left:8px; }
+    .note { margin-top:14px; font-size:13px; color:var(--muted); }
+    section { padding:30px 0; border-top:1px solid var(--border); }
+    h2 { font-size:24px; letter-spacing:-.01em; margin:0 0 14px; }
+    h3 { font-size:17px; margin:22px 0 4px; }
+    p { color:#c4ccd6; }
+    ol,ul { color:#c4ccd6; padding-left:22px; }
+    li { margin:6px 0; }
+    code { background:var(--panel); border:1px solid var(--border); border-radius:5px; padding:1px 5px; font-size:.92em; }
+    pre { background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:16px; overflow:auto; font-size:13px; line-height:1.5; color:#cdd6e0; font-family:ui-monospace,Menlo,Consolas,monospace; }
+    pre code { background:none; border:0; padding:0; }
+    .frame { width:100%; height:480px; border:1px solid var(--border); border-radius:12px; background:var(--panel); }
+    .badges { display:flex; flex-wrap:wrap; gap:8px; margin:18px 0 0; }
+    .badge { font-size:13px; color:#cdd6e0; background:var(--panel); border:1px solid var(--border); border-radius:999px; padding:6px 12px; }
+    .related { display:flex; flex-wrap:wrap; gap:8px 18px; }
+    .cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:14px; padding:0; list-style:none; }
+    .card { display:block; padding:16px; background:var(--panel); border:1px solid var(--border); border-radius:12px; }
+    .card:hover { border-color:var(--accent); text-decoration:none; }
+    .card .t { font-weight:600; color:var(--text); margin-bottom:4px; }
+    .card .d { font-size:13px; color:var(--muted); }
+    footer { border-top:1px solid var(--border); padding:26px 0 50px; color:var(--muted); font-size:14px; }
+    footer .wrap { display:flex; gap:18px; flex-wrap:wrap; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14a9 3 0 0 0 18 0V5"/><path d="M3 12a9 3 0 0 0 18 0"/></svg>
+      <a class="brand" href="/">SQL to ER Diagram</a>
+      <nav>
+        <a href="/">Open tool</a>
+        <a href="/examples/">Examples</a>
+        <a href="https://github.com/royalbhati/sqltoerdiagram" target="_blank" rel="noopener">GitHub</a>
+      </nav>
+    </div>
+  </header>
+  <main class="wrap">
+    <div class="crumb"><a href="/">Home</a> › SQL to Mermaid</div>
+    <div class="hero">
+      <h1>SQL to <span class="a">Mermaid</span></h1>
+      <p class="lead">Paste your SQL <code>CREATE TABLE</code> statements and get a <strong>Mermaid <code>erDiagram</code></strong> you can copy straight into Markdown, GitHub, or your docs — plus a live, interactive diagram.</p>
+      <a class="cta" href="/">Open the diagram tool →</a>
+      <div class="note">No signup · nothing uploaded · export PNG / SVG / Mermaid / DBML · shareable link</div>
+    </div>
+    <section><h2>How it works</h2><ol>
+        <li>Paste your SQL schema into the editor (PostgreSQL, MySQL, SQLite or SQL Server).</li>
+        <li>The diagram renders instantly so you can check it.</li>
+        <li>Click <strong>Export → Mermaid</strong> and copy the <code>erDiagram</code> code.</li>
+        <li>Drop it into any Mermaid-aware Markdown (GitHub, GitLab, Notion, Obsidian…).</li>
+    </ol></section>
+    <section><h2>Example</h2>
+      <p>This SQL:</p>
+      <pre>CREATE TABLE users (
+  id SERIAL PRIMARY KEY,
+  email TEXT UNIQUE
+);
+CREATE TABLE posts (
+  id SERIAL PRIMARY KEY,
+  user_id INT REFERENCES users(id)
+);</pre>
+      <p>…exports as this Mermaid:</p>
+      <pre>erDiagram
+    users {
+        serial id PK
+        text email
+    }
+    posts {
+        serial id PK
+        int user_id FK
+    }
+    users ||--o{ posts : "user_id"</pre>
+      <p>Copy it from <strong>Export → Mermaid</strong>. <a href="/">Try it with your own &rarr;</a></p>
+    </section>
+    <section><h2>Why use it</h2><ul>
+        <li><strong>Private:</strong> everything runs in your browser — nothing is uploaded or stored on a server.</li>
+        <li><strong>Paste-ready Mermaid</strong> for GitHub / GitLab / Notion / Obsidian.</li>
+        <li><strong>Verify visually</strong> — see the live diagram before you copy.</li>
+        <li><strong>Free &amp; open source</strong> — no account, no sign-up.</li>
+    </ul><div class="badges"><span class="badge">SQL → Mermaid</span><span class="badge">SQL → DBML</span><span class="badge">SQL → PlantUML</span><span class="badge">PNG / SVG</span></div></section>
+    <section><h2>FAQ</h2>
+      <h3>How do I convert SQL to a Mermaid ER diagram?</h3>
+      <p>Paste your CREATE TABLE statements, then click Export → Mermaid and copy the erDiagram code. Foreign keys become relationships.</p>
+      <h3>Where can I use the Mermaid output?</h3>
+      <p>Anywhere Mermaid renders: GitHub & GitLab Markdown, Notion, Obsidian, docs sites, and the Mermaid Live Editor.</p>
+      <h3>Is my schema uploaded anywhere?</h3>
+      <p>No. Everything runs locally in your browser — your schema is never uploaded to or stored on any server.</p>
+      <h3>Is it free?</h3>
+      <p>Yes. It is completely free and open source, with no account or sign-up required.</p>
+    </section>
+    <section><h2>Related</h2><div class="related"><a href="/mermaid/">Mermaid to ER diagram</a><a href="/dbml/">DBML to ER diagram</a><a href="/prisma-to-dbml/">Prisma to DBML</a><a href="/postgresql/">PostgreSQL to ER diagram</a><a href="/">SQL to ER Diagram (home)</a></div></section>
+  </main>
+  <footer>
+    <div class="wrap">
+      <a href="/">SQL to ER Diagram</a>
+      <a href="/examples/">Schema examples</a>
+      <a href="https://github.com/royalbhati/sqltoerdiagram" target="_blank" rel="noopener">Open source on GitHub</a>
+      <span>Free · runs in your browser</span>
+    </div>
+  </footer>
+</body>
+</html>

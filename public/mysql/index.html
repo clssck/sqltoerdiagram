@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MySQL to ER Diagram — Free Online MySQL Schema Visualizer</title>
+  <meta name="description" content="Paste MySQL CREATE TABLE statements or a mysqldump and instantly generate an interactive ER diagram. Free, open source, runs in your browser — nothing uploaded." />
+  <meta name="keywords" content="mysql to er diagram, mysql erd, mysql schema diagram, visualize mysql database, mysqldump diagram, mysql entity relationship diagram" />
+  <link rel="canonical" href="https://sqltoerdiagram.com/mysql/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://sqltoerdiagram.com/mysql/" />
+  <meta property="og:title" content="MySQL to ER Diagram — Free Online MySQL Schema Visualizer" />
+  <meta property="og:description" content="Paste MySQL CREATE TABLE statements or a mysqldump and instantly generate an interactive ER diagram. Free, open source, runs in your browser — nothing uploaded." />
+  <meta property="og:image" content="https://sqltoerdiagram.com/og.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="MySQL to ER Diagram — Free Online MySQL Schema Visualizer" />
+  <meta name="twitter:image" content="https://sqltoerdiagram.com/og.png" />
+  <link rel="icon" href="/favicon.ico" sizes="any" />
+  <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How do I turn a MySQL database into an ER diagram?","acceptedAnswer":{"@type":"Answer","text":"Export the schema with <code>mysqldump --no-data</code> (or copy your CREATE TABLE statements), paste it in, and the diagram is drawn instantly with foreign keys as relations."}},{"@type":"Question","name":"Does it work with mysqldump output?","acceptedAnswer":{"@type":"Answer","text":"Yes. Paste the dump as-is — it reads CREATE TABLE definitions and FOREIGN KEY constraints, ignoring the INSERT data."}},{"@type":"Question","name":"Is my schema uploaded anywhere?","acceptedAnswer":{"@type":"Answer","text":"No. Everything runs locally in your browser — your schema is never uploaded to or stored on any server."}},{"@type":"Question","name":"Can I export the diagram?","acceptedAnswer":{"@type":"Answer","text":"Yes — export a high-resolution PNG or vector SVG, copy the schema as Mermaid, DBML or PlantUML, or share a link that encodes the whole diagram in the URL."}},{"@type":"Question","name":"Is it free?","acceptedAnswer":{"@type":"Answer","text":"Yes. It is completely free and open source, with no account or sign-up required."}}]}
+  </script>
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"SQL to ER Diagram","item":"https://sqltoerdiagram.com/"},{"@type":"ListItem","position":2,"name":"MySQL","item":"https://sqltoerdiagram.com/mysql/"}]}
+  </script>
+  <style>
+    :root { --bg:#0e1116; --panel:#161b22; --border:#262d38; --text:#e8edf4; --muted:#9aa4b2; --accent:#5aa7ff; }
+    * { box-sizing:border-box; }
+    html,body { margin:0; }
+    body { background:var(--bg); color:var(--text); font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; line-height:1.6; -webkit-font-smoothing:antialiased; }
+    a { color:var(--accent); text-decoration:none; }
+    a:hover { text-decoration:underline; }
+    .wrap { max-width:820px; margin:0 auto; padding:0 22px; }
+    header { border-bottom:1px solid var(--border); }
+    header .wrap { display:flex; align-items:center; gap:10px; height:58px; }
+    header svg { width:22px; height:22px; color:var(--accent); }
+    header .brand { font-weight:700; color:var(--text); }
+    header nav { margin-left:auto; display:flex; gap:20px; font-size:14px; }
+    .crumb { font-size:13px; color:var(--muted); padding:16px 0 0; }
+    .hero { padding:26px 0 36px; }
+    h1 { font-size:42px; line-height:1.1; letter-spacing:-.02em; margin:0 0 16px; }
+    h1 .a { color:var(--accent); }
+    .lead { font-size:19px; color:var(--muted); max-width:660px; margin:0 0 28px; }
+    .cta { display:inline-block; background:var(--accent); color:#fff; font-weight:600; font-size:16px; padding:13px 24px; border-radius:10px; }
+    .cta:hover { filter:brightness(1.08); text-decoration:none; }
+    .cta.alt { background:transparent; color:var(--accent); border:1px solid var(--border); margin-left:8px; }
+    .note { margin-top:14px; font-size:13px; color:var(--muted); }
+    section { padding:30px 0; border-top:1px solid var(--border); }
+    h2 { font-size:24px; letter-spacing:-.01em; margin:0 0 14px; }
+    h3 { font-size:17px; margin:22px 0 4px; }
+    p { color:#c4ccd6; }
+    ol,ul { color:#c4ccd6; padding-left:22px; }
+    li { margin:6px 0; }
+    code { background:var(--panel); border:1px solid var(--border); border-radius:5px; padding:1px 5px; font-size:.92em; }
+    pre { background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:16px; overflow:auto; font-size:13px; line-height:1.5; color:#cdd6e0; font-family:ui-monospace,Menlo,Consolas,monospace; }
+    pre code { background:none; border:0; padding:0; }
+    .frame { width:100%; height:480px; border:1px solid var(--border); border-radius:12px; background:var(--panel); }
+    .badges { display:flex; flex-wrap:wrap; gap:8px; margin:18px 0 0; }
+    .badge { font-size:13px; color:#cdd6e0; background:var(--panel); border:1px solid var(--border); border-radius:999px; padding:6px 12px; }
+    .related { display:flex; flex-wrap:wrap; gap:8px 18px; }
+    .cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:14px; padding:0; list-style:none; }
+    .card { display:block; padding:16px; background:var(--panel); border:1px solid var(--border); border-radius:12px; }
+    .card:hover { border-color:var(--accent); text-decoration:none; }
+    .card .t { font-weight:600; color:var(--text); margin-bottom:4px; }
+    .card .d { font-size:13px; color:var(--muted); }
+    footer { border-top:1px solid var(--border); padding:26px 0 50px; color:var(--muted); font-size:14px; }
+    footer .wrap { display:flex; gap:18px; flex-wrap:wrap; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14a9 3 0 0 0 18 0V5"/><path d="M3 12a9 3 0 0 0 18 0"/></svg>
+      <a class="brand" href="/">SQL to ER Diagram</a>
+      <nav>
+        <a href="/">Open tool</a>
+        <a href="/examples/">Examples</a>
+        <a href="https://github.com/royalbhati/sqltoerdiagram" target="_blank" rel="noopener">GitHub</a>
+      </nav>
+    </div>
+  </header>
+  <main class="wrap">
+    <div class="crumb"><a href="/">Home</a> › MySQL</div>
+    <div class="hero">
+      <h1>MySQL to <span class="a">ER Diagram</span></h1>
+      <p class="lead">Paste your MySQL <code>CREATE TABLE</code> statements (or a <code>mysqldump</code>) and get a clean, interactive entity-relationship diagram — tables, columns, keys and foreign keys, drawn automatically.</p>
+      <a class="cta" href="/">Open the diagram tool →</a>
+      <div class="note">No signup · nothing uploaded · export PNG / SVG / Mermaid / DBML · shareable link</div>
+    </div>
+    <section><h2>How it works</h2><ol>
+        <li>Dump your schema with <code>mysqldump --no-data your_db</code>, or copy your <code>CREATE TABLE</code> statements.</li>
+        <li>Paste it into the editor — MySQL is parsed automatically.</li>
+        <li>Every table is rendered with its columns; <code>FOREIGN KEY</code> constraints become relations.</li>
+        <li>Arrange, hide tables, then export PNG/SVG or share a link.</li>
+    </ol></section>
+    <section><h2>Example</h2>
+      <p>A MySQL schema like this:</p>
+      <pre>CREATE TABLE customers (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  email VARCHAR(255) NOT NULL UNIQUE
+) ENGINE=InnoDB;
+
+CREATE TABLE orders (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  customer_id INT NOT NULL,
+  FOREIGN KEY (customer_id) REFERENCES customers(id)
+) ENGINE=InnoDB;</pre>
+      <p>…renders two tables with a relation from <code>orders.customer_id</code> → <code>customers.id</code>. <a href="/">Try it with your own &rarr;</a></p>
+    </section>
+    <section><h2>Why use it</h2><ul>
+        <li><strong>Private:</strong> everything runs in your browser — nothing is uploaded or stored on a server.</li>
+        <li><strong>Interactive:</strong> drag tables, auto-arrange, hide noise, add notes, and manually link columns.</li>
+        <li><strong>Export</strong> a high-res PNG, vector SVG, or the schema as Mermaid / DBML / PlantUML code.</li>
+        <li><strong>Handles big dumps</strong> — hundreds of tables stay smooth.</li>
+        <li><strong>Free &amp; open source</strong> — no account, no sign-up.</li>
+    </ul><div class="badges"><span class="badge">MySQL</span><span class="badge">MariaDB</span><span class="badge">PostgreSQL</span><span class="badge">SQLite</span><span class="badge">SQL Server</span></div></section>
+    <section><h2>FAQ</h2>
+      <h3>How do I turn a MySQL database into an ER diagram?</h3>
+      <p>Export the schema with <code>mysqldump --no-data</code> (or copy your CREATE TABLE statements), paste it in, and the diagram is drawn instantly with foreign keys as relations.</p>
+      <h3>Does it work with mysqldump output?</h3>
+      <p>Yes. Paste the dump as-is — it reads CREATE TABLE definitions and FOREIGN KEY constraints, ignoring the INSERT data.</p>
+      <h3>Is my schema uploaded anywhere?</h3>
+      <p>No. Everything runs locally in your browser — your schema is never uploaded to or stored on any server.</p>
+      <h3>Can I export the diagram?</h3>
+      <p>Yes — export a high-resolution PNG or vector SVG, copy the schema as Mermaid, DBML or PlantUML, or share a link that encodes the whole diagram in the URL.</p>
+      <h3>Is it free?</h3>
+      <p>Yes. It is completely free and open source, with no account or sign-up required.</p>
+    </section>
+    <section><h2>Related</h2><div class="related"><a href="/postgresql/">PostgreSQL to ER diagram</a><a href="/sqlite/">SQLite to ER diagram</a><a href="/sql-server/">SQL Server to ER diagram</a><a href="/prisma/">Prisma to ER diagram</a><a href="/sql-to-mermaid/">SQL to Mermaid</a><a href="/">SQL to ER Diagram (home)</a></div></section>
+  </main>
+  <footer>
+    <div class="wrap">
+      <a href="/">SQL to ER Diagram</a>
+      <a href="/examples/">Schema examples</a>
+      <a href="https://github.com/royalbhati/sqltoerdiagram" target="_blank" rel="noopener">Open source on GitHub</a>
+      <span>Free · runs in your browser</span>
+    </div>
+  </footer>
+</body>
+</html>

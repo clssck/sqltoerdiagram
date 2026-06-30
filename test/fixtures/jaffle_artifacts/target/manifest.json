@@ -1,0 +1,303 @@
+{
+  "metadata": { "dbt_schema_version": "https://schemas.getdbt.com/dbt/manifest/v12.json" },
+  "nodes": {
+    "model.jaffle_artifacts.customers": {
+      "unique_id": "model.jaffle_artifacts.customers",
+      "resource_type": "model",
+      "package_name": "jaffle_artifacts",
+      "name": "customers",
+      "alias": "customers",
+      "schema": "analytics",
+      "database": "warehouse",
+      "config": { "enabled": true, "materialized": "table" },
+      "columns": {
+        "id": { "name": "id", "data_type": "text" },
+        "first_name": { "name": "first_name" },
+        "last_name": { "name": "last_name" }
+      },
+      "depends_on": { "nodes": [] }
+    },
+    "model.jaffle_artifacts.orders": {
+      "unique_id": "model.jaffle_artifacts.orders",
+      "resource_type": "model",
+      "package_name": "jaffle_artifacts",
+      "name": "orders",
+      "alias": "orders",
+      "schema": "analytics",
+      "database": "warehouse",
+      "config": { "enabled": true, "materialized": "table" },
+      "columns": {
+        "id": { "name": "id" },
+        "customer_id": { "name": "customer_id" },
+        "ordered_at": { "name": "ordered_at" },
+        "status": { "name": "status" }
+      },
+      "depends_on": { "nodes": ["model.jaffle_artifacts.customers", "source.jaffle_artifacts.raw.orders"] }
+    },
+    "model.jaffle_artifacts.order_items": {
+      "unique_id": "model.jaffle_artifacts.order_items",
+      "resource_type": "model",
+      "package_name": "jaffle_artifacts",
+      "name": "order_items",
+      "alias": "order_items",
+      "schema": "analytics",
+      "database": "warehouse",
+      "config": { "enabled": true, "materialized": "incremental" },
+      "columns": {
+        "id": { "name": "id" },
+        "order_id": { "name": "order_id" },
+        "product_id": { "name": "product_id" },
+        "quantity": { "name": "quantity" }
+      },
+      "depends_on": { "nodes": ["model.jaffle_artifacts.orders", "model.jaffle_artifacts.products"] }
+    },
+    "model.jaffle_artifacts.products": {
+      "unique_id": "model.jaffle_artifacts.products",
+      "resource_type": "model",
+      "package_name": "jaffle_artifacts",
+      "name": "products",
+      "alias": "products",
+      "schema": "analytics",
+      "database": "warehouse",
+      "config": { "enabled": true, "materialized": "table" },
+      "columns": {
+        "id": { "name": "id" },
+        "sku": { "name": "sku" },
+        "name": { "name": "name" }
+      },
+      "depends_on": { "nodes": [] }
+    },
+    "model.jaffle_artifacts.contract_orders": {
+      "unique_id": "model.jaffle_artifacts.contract_orders",
+      "resource_type": "model",
+      "package_name": "jaffle_artifacts",
+      "name": "contract_orders",
+      "alias": "contract_orders",
+      "schema": "analytics",
+      "database": "warehouse",
+      "config": { "enabled": true, "materialized": "table" },
+      "contract": { "enforced": true },
+      "columns": {
+        "id": { "name": "id", "constraints": [{ "type": "primary_key" }] },
+        "order_id": { "name": "order_id", "constraints": [{ "type": "foreign_key", "to": "ref('jaffle_artifacts', 'orders')", "to_columns": ["id"] }] },
+        "customer_id": { "name": "customer_id", "constraints": [{ "type": "not_null" }] },
+        "product_id": { "name": "product_id", "constraints": [{ "type": "not_null" }] },
+        "notes": { "name": "notes" }
+      },
+      "constraints": [
+        { "type": "unique", "columns": ["customer_id", "product_id"] },
+        { "type": "foreign_key", "columns": ["customer_id"], "to": "ref('customers')", "to_columns": ["id"] },
+        { "type": "foreign_key", "columns": ["product_id"], "expression": "analytics.products (id)" }
+      ],
+      "depends_on": { "nodes": [] }
+    },
+    "model.jaffle_artifacts.dim_region": {
+      "unique_id": "model.jaffle_artifacts.dim_region",
+      "resource_type": "model",
+      "package_name": "jaffle_artifacts",
+      "name": "dim_region",
+      "alias": "dim_region",
+      "schema": "analytics",
+      "database": "warehouse",
+      "config": { "enabled": true, "materialized": "table" },
+      "columns": {
+        "country_code": { "name": "country_code", "constraints": [{ "type": "primary_key" }] },
+        "region_code": { "name": "region_code", "constraints": [{ "type": "primary_key" }] },
+        "region_name": { "name": "region_name" }
+      },
+      "constraints": [],
+      "depends_on": { "nodes": [] }
+    },
+    "model.jaffle_artifacts.fct_sales": {
+      "unique_id": "model.jaffle_artifacts.fct_sales",
+      "resource_type": "model",
+      "package_name": "jaffle_artifacts",
+      "name": "fct_sales",
+      "alias": "fct_sales",
+      "schema": "analytics",
+      "database": "warehouse",
+      "config": { "enabled": true, "materialized": "table" },
+      "columns": {
+        "id": { "name": "id", "constraints": [{ "type": "primary_key" }] },
+        "country_code": { "name": "country_code" },
+        "region_code": { "name": "region_code" },
+        "order_ref": { "name": "order_ref", "constraints": [{ "type": "foreign_key", "expression": "analytics.orders (id)" }] },
+        "amount": { "name": "amount" }
+      },
+      "constraints": [
+        { "type": "foreign_key", "columns": ["country_code", "region_code"], "to": "ref('dim_region')", "to_columns": ["country_code", "region_code"] }
+      ],
+      "depends_on": { "nodes": [] }
+    },
+    "model.marketing_pkg.orders": {
+      "unique_id": "model.marketing_pkg.orders",
+      "resource_type": "model",
+      "package_name": "marketing_pkg",
+      "name": "orders",
+      "alias": "orders",
+      "schema": "marketing",
+      "database": "warehouse",
+      "config": { "enabled": true, "materialized": "table" },
+      "columns": {
+        "id": { "name": "id" },
+        "campaign_id": { "name": "campaign_id" }
+      },
+      "depends_on": { "nodes": [] }
+    },
+    "model.jaffle_artifacts.ephemeral_rollup": {
+      "unique_id": "model.jaffle_artifacts.ephemeral_rollup",
+      "resource_type": "model",
+      "package_name": "jaffle_artifacts",
+      "name": "ephemeral_rollup",
+      "alias": "ephemeral_rollup",
+      "schema": "analytics",
+      "config": { "enabled": true, "materialized": "ephemeral" },
+      "columns": { "id": { "name": "id" } },
+      "depends_on": { "nodes": ["model.jaffle_artifacts.orders"] }
+    },
+    "model.jaffle_artifacts.disabled_model": {
+      "unique_id": "model.jaffle_artifacts.disabled_model",
+      "resource_type": "model",
+      "package_name": "jaffle_artifacts",
+      "name": "disabled_model",
+      "alias": "disabled_model",
+      "schema": "analytics",
+      "config": { "enabled": false, "materialized": "table" },
+      "columns": { "id": { "name": "id" } },
+      "depends_on": { "nodes": [] }
+    },
+    "test.jaffle_artifacts.unique_customers_id": {
+      "unique_id": "test.jaffle_artifacts.unique_customers_id",
+      "resource_type": "test",
+      "test_metadata": { "name": "unique", "kwargs": { "column_name": "id" } },
+      "attached_node": "model.jaffle_artifacts.customers",
+      "column_name": "id",
+      "depends_on": { "nodes": ["model.jaffle_artifacts.customers"] }
+    },
+    "test.jaffle_artifacts.not_null_customers_id": {
+      "unique_id": "test.jaffle_artifacts.not_null_customers_id",
+      "resource_type": "test",
+      "test_metadata": { "name": "not_null", "kwargs": { "column_name": "id" } },
+      "attached_node": "model.jaffle_artifacts.customers",
+      "column_name": "id",
+      "depends_on": { "nodes": ["model.jaffle_artifacts.customers"] }
+    },
+    "test.jaffle_artifacts.unique_orders_id": {
+      "unique_id": "test.jaffle_artifacts.unique_orders_id",
+      "resource_type": "test",
+      "test_metadata": { "name": "unique", "kwargs": { "column_name": "id" } },
+      "attached_node": "model.jaffle_artifacts.orders",
+      "column_name": "id",
+      "depends_on": { "nodes": ["model.jaffle_artifacts.orders"] }
+    },
+    "test.jaffle_artifacts.not_null_orders_id": {
+      "unique_id": "test.jaffle_artifacts.not_null_orders_id",
+      "resource_type": "test",
+      "test_metadata": { "name": "not_null", "kwargs": { "column_name": "id" } },
+      "attached_node": "model.jaffle_artifacts.orders",
+      "column_name": "id",
+      "depends_on": { "nodes": ["model.jaffle_artifacts.orders"] }
+    },
+    "test.jaffle_artifacts.unique_order_items_id": {
+      "unique_id": "test.jaffle_artifacts.unique_order_items_id",
+      "resource_type": "test",
+      "test_metadata": { "name": "unique", "kwargs": { "column_name": "id" } },
+      "attached_node": "model.jaffle_artifacts.order_items",
+      "column_name": "id",
+      "depends_on": { "nodes": ["model.jaffle_artifacts.order_items"] }
+    },
+    "test.jaffle_artifacts.not_null_order_items_id": {
+      "unique_id": "test.jaffle_artifacts.not_null_order_items_id",
+      "resource_type": "test",
+      "test_metadata": { "name": "not_null", "kwargs": { "column_name": "id" } },
+      "attached_node": "model.jaffle_artifacts.order_items",
+      "column_name": "id",
+      "depends_on": { "nodes": ["model.jaffle_artifacts.order_items"] }
+    },
+    "test.jaffle_artifacts.unique_products_id": {
+      "unique_id": "test.jaffle_artifacts.unique_products_id",
+      "resource_type": "test",
+      "test_metadata": { "name": "unique", "kwargs": { "column_name": "id" } },
+      "attached_node": "model.jaffle_artifacts.products",
+      "column_name": "id",
+      "depends_on": { "nodes": ["model.jaffle_artifacts.products"] }
+    },
+    "test.jaffle_artifacts.not_null_products_id": {
+      "unique_id": "test.jaffle_artifacts.not_null_products_id",
+      "resource_type": "test",
+      "test_metadata": { "name": "not_null", "kwargs": { "column_name": "id" } },
+      "attached_node": "model.jaffle_artifacts.products",
+      "column_name": "id",
+      "depends_on": { "nodes": ["model.jaffle_artifacts.products"] }
+    },
+    "test.jaffle_artifacts.relationship_orders_customer_id": {
+      "unique_id": "test.jaffle_artifacts.relationship_orders_customer_id",
+      "resource_type": "test",
+      "test_metadata": { "name": "relationships", "kwargs": { "column_name": "customer_id", "to": "ref('customers')", "field": "id" } },
+      "attached_node": "model.jaffle_artifacts.orders",
+      "column_name": "customer_id",
+      "depends_on": { "nodes": ["model.jaffle_artifacts.orders", "model.jaffle_artifacts.customers"] }
+    },
+    "test.jaffle_artifacts.relationship_order_items_order_id": {
+      "unique_id": "test.jaffle_artifacts.relationship_order_items_order_id",
+      "resource_type": "test",
+      "test_metadata": { "name": "relationships", "kwargs": { "column_name": "order_id", "to": "ref('orders')", "field": "id" } },
+      "attached_node": "model.jaffle_artifacts.order_items",
+      "column_name": "order_id",
+      "depends_on": { "nodes": ["model.jaffle_artifacts.order_items", "model.jaffle_artifacts.orders"] }
+    },
+    "test.jaffle_artifacts.relationship_order_items_product_id": {
+      "unique_id": "test.jaffle_artifacts.relationship_order_items_product_id",
+      "resource_type": "test",
+      "test_metadata": { "name": "relationships", "kwargs": { "arguments": { "column_name": "product_id", "to": "ref('products')", "field": "id" } } },
+      "attached_node": "model.jaffle_artifacts.order_items",
+      "depends_on": { "nodes": ["model.jaffle_artifacts.order_items", "model.jaffle_artifacts.products"] }
+    },
+    "test.jaffle_artifacts.relationship_contract_orders_order_id": {
+      "unique_id": "test.jaffle_artifacts.relationship_contract_orders_order_id",
+      "resource_type": "test",
+      "test_metadata": { "name": "relationships", "kwargs": { "column_name": "order_id", "to": "ref('orders')", "field": "id" } },
+      "attached_node": "model.jaffle_artifacts.contract_orders",
+      "column_name": "order_id",
+      "depends_on": { "nodes": ["model.jaffle_artifacts.contract_orders", "model.jaffle_artifacts.orders"] }
+    },
+    "test.jaffle_artifacts.relationship_source_orders_customer_id": {
+      "unique_id": "test.jaffle_artifacts.relationship_source_orders_customer_id",
+      "resource_type": "test",
+      "test_metadata": { "name": "relationships", "kwargs": { "column_name": "customer_id", "to": "ref('customers')", "field": "id" } },
+      "attached_node": "source.jaffle_artifacts.raw.orders",
+      "column_name": "customer_id",
+      "depends_on": { "nodes": ["source.jaffle_artifacts.raw.orders", "model.jaffle_artifacts.customers"] }
+    }
+  },
+  "sources": {
+    "source.jaffle_artifacts.raw.customers": {
+      "unique_id": "source.jaffle_artifacts.raw.customers",
+      "resource_type": "source",
+      "package_name": "jaffle_artifacts",
+      "source_name": "raw",
+      "name": "customers",
+      "schema": "raw",
+      "database": "warehouse",
+      "config": { "enabled": true },
+      "columns": {
+        "id": { "name": "id" },
+        "first_name": { "name": "first_name" }
+      }
+    },
+    "source.jaffle_artifacts.raw.orders": {
+      "unique_id": "source.jaffle_artifacts.raw.orders",
+      "resource_type": "source",
+      "package_name": "jaffle_artifacts",
+      "source_name": "raw",
+      "name": "orders",
+      "schema": "raw",
+      "database": "warehouse",
+      "config": { "enabled": true },
+      "columns": {
+        "id": { "name": "id" },
+        "customer_id": { "name": "customer_id" }
+      }
+    }
+  }
+}

@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>dbt ERD Viewer</title>
+	<link rel="stylesheet" href="/src/viewer/style.css">
+</head>
+<body>
+	<div id="stage"><canvas id="erd"></canvas></div>
+	<header id="toolbar" class="toolbar" aria-label="Diagram controls">
+		<div class="toolbar-info">
+			<div id="title-chip" class="title-chip">dbt ERD</div>
+			<div id="meta-line" class="meta-line">Read-only canvas viewer</div>
+		</div>
+		<div class="toolbar-actions" aria-label="Canvas controls">
+			<button id="theme-toggle" type="button" aria-label="Toggle dark or light theme">Theme</button>
+			<button id="fit" type="button">Fit</button>
+			<button id="zoom-out" type="button" aria-label="Zoom out">−</button>
+			<button id="zoom-in" type="button" aria-label="Zoom in">+</button>
+		</div>
+	</header>
+	<div id="empty-state" class="empty-state" hidden>No diagram data</div>
+	<script type="application/json" id="erd-model">{}</script>
+	<script type="module" src="/src/viewer/main.js"></script>
+</body>
+</html>

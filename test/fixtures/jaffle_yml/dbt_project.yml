@@ -1,0 +1,6 @@
+name: jaffle_yml
+version: '1.0'
+config-version: 2
+profile: jaffle
+model-paths:
+  - models

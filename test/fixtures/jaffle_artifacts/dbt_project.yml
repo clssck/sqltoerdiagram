@@ -1,0 +1,5 @@
+name: jaffle_artifacts
+version: '1.0'
+config-version: 2
+profile: jaffle
+model-paths: ['models']

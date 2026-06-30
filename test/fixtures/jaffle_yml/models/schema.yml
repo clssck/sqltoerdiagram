@@ -1,0 +1,165 @@
+version: 2
+
+models:
+  - name: customers
+    columns:
+      - name: id
+        data_type: integer
+        tests:
+          - unique
+        data_tests:
+          - not_null
+      - name: first_name
+        data_type: text
+      - name: last_name
+        data_type: text
+
+  - name: orders
+    columns:
+      - name: id
+        data_type: integer
+        tests:
+          - unique
+          - not_null
+      - name: customer_id
+        data_type: integer
+        data_tests:
+          - relationships:
+              arguments:
+                to: "ref('customers')"
+                field: id
+      - name: status
+        data_type: text
+
+  - name: contract_orders
+    constraints:
+      - type: unique
+        columns: [customer_id, product_id]
+      - type: foreign_key
+        columns: [customer_id]
+        to: "ref('customers')"
+        to_columns: [id]
+      - type: foreign_key
+        columns: [product_id]
+        expression: analytics.products (id)
+    columns:
+      - name: id
+        data_type: integer
+        constraints:
+          - type: primary_key
+      - name: order_id
+        data_type: integer
+        constraints:
+          - type: foreign_key
+            to: "ref('orders')"
+            to_columns: [id]
+        tests:
+          - relationships:
+              to: "ref('orders')"
+              field: id
+      - name: customer_id
+        data_type: integer
+        constraints:
+          - type: not_null
+      - name: product_id
+        data_type: integer
+        constraints:
+          - type: not_null
+      - name: notes
+        data_type: text
+
+  - name: order_items
+    columns:
+      - name: id
+        data_type: integer
+        tests:
+          - unique
+          - not_null
+      - name: order_id
+        data_type: integer
+        tests:
+          - relationships:
+              to: "ref('orders')"
+              field: id
+      - name: product_id
+        data_type: integer
+        data_tests:
+          - relationships:
+              arguments:
+                to: "ref('products')"
+                field: id
+      - name: quantity
+        data_type: integer
+
+  - name: products
+    columns:
+      - name: id
+        data_type: integer
+        tests:
+          - unique
+          - not_null
+      - name: sku
+        data_type: text
+      - name: name
+        data_type: text
+
+  - name: ephemeral_rollup
+    config:
+      materialized: ephemeral
+    columns:
+      - name: id
+        data_type: integer
+
+  - name: disabled_model
+    config:
+      enabled: false
+    columns:
+      - name: id
+        data_type: integer
+
+sources:
+  - name: raw
+    tables:
+      - name: payments
+        columns:
+          - name: id
+            data_type: integer
+          - name: order_id
+            data_type: integer
+            tests:
+              - relationships:
+                  to: "ref('orders')"
+                  field: id
+          - name: amount
+            data_type: numeric
+
+seeds:
+  - name: country_codes
+    columns:
+      - name: customer_id
+        data_type: integer
+        tests:
+          - unique
+          - not_null
+          - relationships:
+              to: "ref('customers')"
+              field: id
+      - name: country_code
+        data_type: text
+
+snapshots:
+  - name: order_status_snapshot
+    columns:
+      - name: id
+        data_type: integer
+        tests:
+          - unique
+          - not_null
+      - name: customer_id
+        data_type: integer
+        tests:
+          - relationships:
+              to: "ref('customers')"
+              field: id
+      - name: status
+        data_type: text

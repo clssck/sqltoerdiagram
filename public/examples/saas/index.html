@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SaaS Multi-Tenant Database Schema Example (ER Diagram)</title>
+  <meta name="description" content="A multi-tenant SaaS database schema example — organizations, users, memberships, projects, plans and subscriptions — as an interactive ER diagram you can open and edit." />
+  <meta name="keywords" content="saas database schema example, multi-tenant database design, saas er diagram, organizations users subscriptions schema, b2b saas schema" />
+  <link rel="canonical" href="https://sqltoerdiagram.com/examples/saas/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://sqltoerdiagram.com/examples/saas/" />
+  <meta property="og:title" content="SaaS Multi-Tenant Database Schema Example (ER Diagram)" />
+  <meta property="og:description" content="A multi-tenant SaaS database schema example — organizations, users, memberships, projects, plans and subscriptions — as an interactive ER diagram you can open and edit." />
+  <meta property="og:image" content="https://sqltoerdiagram.com/og.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="SaaS Multi-Tenant Database Schema Example (ER Diagram)" />
+  <meta name="twitter:image" content="https://sqltoerdiagram.com/og.png" />
+  <link rel="icon" href="/favicon.ico" sizes="any" />
+  <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"SQL to ER Diagram","item":"https://sqltoerdiagram.com/"},{"@type":"ListItem","position":2,"name":"SaaS (multi-tenant) schema","item":"https://sqltoerdiagram.com/examples/saas/"}]}
+  </script>
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@type":"TechArticle","headline":"SaaS Multi-Tenant Database Schema Example (ER Diagram)","description":"A multi-tenant SaaS database schema example — organizations, users, memberships, projects, plans and subscriptions — as an interactive ER diagram you can open and edit.","url":"https://sqltoerdiagram.com/examples/saas/"}
+  </script>
+  <style>
+    :root { --bg:#0e1116; --panel:#161b22; --border:#262d38; --text:#e8edf4; --muted:#9aa4b2; --accent:#5aa7ff; }
+    * { box-sizing:border-box; }
+    html,body { margin:0; }
+    body { background:var(--bg); color:var(--text); font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; line-height:1.6; -webkit-font-smoothing:antialiased; }
+    a { color:var(--accent); text-decoration:none; }
+    a:hover { text-decoration:underline; }
+    .wrap { max-width:820px; margin:0 auto; padding:0 22px; }
+    header { border-bottom:1px solid var(--border); }
+    header .wrap { display:flex; align-items:center; gap:10px; height:58px; }
+    header svg { width:22px; height:22px; color:var(--accent); }
+    header .brand { font-weight:700; color:var(--text); }
+    header nav { margin-left:auto; display:flex; gap:20px; font-size:14px; }
+    .crumb { font-size:13px; color:var(--muted); padding:16px 0 0; }
+    .hero { padding:26px 0 36px; }
+    h1 { font-size:42px; line-height:1.1; letter-spacing:-.02em; margin:0 0 16px; }
+    h1 .a { color:var(--accent); }
+    .lead { font-size:19px; color:var(--muted); max-width:660px; margin:0 0 28px; }
+    .cta { display:inline-block; background:var(--accent); color:#fff; font-weight:600; font-size:16px; padding:13px 24px; border-radius:10px; }
+    .cta:hover { filter:brightness(1.08); text-decoration:none; }
+    .cta.alt { background:transparent; color:var(--accent); border:1px solid var(--border); margin-left:8px; }
+    .note { margin-top:14px; font-size:13px; color:var(--muted); }
+    section { padding:30px 0; border-top:1px solid var(--border); }
+    h2 { font-size:24px; letter-spacing:-.01em; margin:0 0 14px; }
+    h3 { font-size:17px; margin:22px 0 4px; }
+    p { color:#c4ccd6; }
+    ol,ul { color:#c4ccd6; padding-left:22px; }
+    li { margin:6px 0; }
+    code { background:var(--panel); border:1px solid var(--border); border-radius:5px; padding:1px 5px; font-size:.92em; }
+    pre { background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:16px; overflow:auto; font-size:13px; line-height:1.5; color:#cdd6e0; font-family:ui-monospace,Menlo,Consolas,monospace; }
+    pre code { background:none; border:0; padding:0; }
+    .frame { width:100%; height:480px; border:1px solid var(--border); border-radius:12px; background:var(--panel); }
+    .badges { display:flex; flex-wrap:wrap; gap:8px; margin:18px 0 0; }
+    .badge { font-size:13px; color:#cdd6e0; background:var(--panel); border:1px solid var(--border); border-radius:999px; padding:6px 12px; }
+    .related { display:flex; flex-wrap:wrap; gap:8px 18px; }
+    .cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:14px; padding:0; list-style:none; }
+    .card { display:block; padding:16px; background:var(--panel); border:1px solid var(--border); border-radius:12px; }
+    .card:hover { border-color:var(--accent); text-decoration:none; }
+    .card .t { font-weight:600; color:var(--text); margin-bottom:4px; }
+    .card .d { font-size:13px; color:var(--muted); }
+    footer { border-top:1px solid var(--border); padding:26px 0 50px; color:var(--muted); font-size:14px; }
+    footer .wrap { display:flex; gap:18px; flex-wrap:wrap; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14a9 3 0 0 0 18 0V5"/><path d="M3 12a9 3 0 0 0 18 0"/></svg>
+      <a class="brand" href="/">SQL to ER Diagram</a>
+      <nav>
+        <a href="/">Open tool</a>
+        <a href="/examples/">Examples</a>
+        <a href="https://github.com/royalbhati/sqltoerdiagram" target="_blank" rel="noopener">GitHub</a>
+      </nav>
+    </div>
+  </header>
+  <main class="wrap">
+    <div class="crumb"><a href="/">Home</a> › <a href="/examples/">Examples</a> › SaaS (multi-tenant)</div>
+    <div class="hero">
+      <h1>SaaS (multi-tenant) <span class="a">Schema</span></h1>
+      <p class="lead">A <strong>multi-tenant SaaS</strong> schema — organizations with members, per-org projects, and plan-based subscriptions with invoices — as an interactive ER diagram.</p>
+      <a class="cta" href="/#s=ztZNBS8NAEIX_yrCnBnKohXqop7SsGEzTmqZCoVC2ydCOJJu4s6mg-N-lEWOjpVXE28Ls7Pvem9kXocpSDES6TmmjhCt2aJgKLQYXruDHTAzEKJJeLCH2hoGEwmyUpmdlqdAMnaUGoBRmMvK9AKaRP_aiBdzKhbuvaJUj3HvR6MaLOhe9rgPhJIZwHgR1mbNq0y7PQ_9uLutiYlBZTFfKQuyP5Sz2xtOldq6WusVTMZqzHJgryhqlXr__odTm-YZ7RC_HfI2Gt1SeVT2MakUp-GHc6EEkr2Ukw5GctSPtUOrU3Xtjp7pq481tU2Sf6MfJS1M8YGL_Gbud4WXXcUGZZEs7TGE4mQTSC4-xZeqX21S_XBpKcJWgtrzHdIFRvR-PaHC15sRQ-aPN_VsIezunumq7zW22ylZ8OD0XDGp84nPLT3pXUIJn3RxaP8XViqjhU3lRaXsYMzFXX76mC6Wi1oiFK1JSGSZWDERZsN0YZPH6Bg">Open this schema in the editor →</a>
+      <a class="cta alt" href="/examples/">All examples</a>
+    </div>
+    <section>
+      <h2>Interactive diagram</h2>
+      <iframe class="frame" src="/?embed=1#s=ztZNBS8NAEIX_yrCnBnKohXqop7SsGEzTmqZCoVC2ydCOJJu4s6mg-N-lEWOjpVXE28Ls7Pvem9kXocpSDES6TmmjhCt2aJgKLQYXruDHTAzEKJJeLCH2hoGEwmyUpmdlqdAMnaUGoBRmMvK9AKaRP_aiBdzKhbuvaJUj3HvR6MaLOhe9rgPhJIZwHgR1mbNq0y7PQ_9uLutiYlBZTFfKQuyP5Sz2xtOldq6WusVTMZqzHJgryhqlXr__odTm-YZ7RC_HfI2Gt1SeVT2MakUp-GHc6EEkr2Ukw5GctSPtUOrU3Xtjp7pq481tU2Sf6MfJS1M8YGL_Gbud4WXXcUGZZEs7TGE4mQTSC4-xZeqX21S_XBpKcJWgtrzHdIFRvR-PaHC15sRQ-aPN_VsIezunumq7zW22ylZ8OD0XDGp84nPLT3pXUIJn3RxaP8XViqjhU3lRaXsYMzFXX76mC6Wi1oiFK1JSGSZWDERZsN0YZPH6Bg" loading="lazy" title="SaaS (multi-tenant) ER diagram"></iframe>
+      <p class="note">Drag to pan, scroll to zoom. <a href="/#s=ztZNBS8NAEIX_yrCnBnKohXqop7SsGEzTmqZCoVC2ydCOJJu4s6mg-N-lEWOjpVXE28Ls7Pvem9kXocpSDES6TmmjhCt2aJgKLQYXruDHTAzEKJJeLCH2hoGEwmyUpmdlqdAMnaUGoBRmMvK9AKaRP_aiBdzKhbuvaJUj3HvR6MaLOhe9rgPhJIZwHgR1mbNq0y7PQ_9uLutiYlBZTFfKQuyP5Sz2xtOldq6WusVTMZqzHJgryhqlXr__odTm-YZ7RC_HfI2Gt1SeVT2MakUp-GHc6EEkr2Ukw5GctSPtUOrU3Xtjp7pq481tU2Sf6MfJS1M8YGL_Gbud4WXXcUGZZEs7TGE4mQTSC4-xZeqX21S_XBpKcJWgtrzHdIFRvR-PaHC15sRQ-aPN_VsIezunumq7zW22ylZ8OD0XDGp84nPLT3pXUIJn3RxaP8XViqjhU3lRaXsYMzFXX76mC6Wi1oiFK1JSGSZWDERZsN0YZPH6Bg">Open it in the full editor</a> to edit, rearrange and export.</p>
+    </section>
+    <section><h2>About this schema</h2><p>Each organization (tenant) has users joined through memberships (with roles), owns projects, and subscribes to a plan; invoices belong to a subscription.</p></section>
+    <section><h2>Schema (SQL)</h2><pre>CREATE TABLE organizations (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(120) NOT NULL,
+  slug VARCHAR(120) UNIQUE,
+  created_at TIMESTAMP
+);
+CREATE TABLE users (
+  id SERIAL PRIMARY KEY,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  name VARCHAR(120)
+);
+CREATE TABLE memberships (
+  id SERIAL PRIMARY KEY,
+  organization_id INT NOT NULL REFERENCES organizations(id),
+  user_id INT NOT NULL REFERENCES users(id),
+  role VARCHAR(20)
+);
+CREATE TABLE projects (
+  id SERIAL PRIMARY KEY,
+  organization_id INT NOT NULL REFERENCES organizations(id),
+  name VARCHAR(160), archived BOOLEAN
+);
+CREATE TABLE plans (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(60), price_cents INT, seats INT
+);
+CREATE TABLE subscriptions (
+  id SERIAL PRIMARY KEY,
+  organization_id INT NOT NULL REFERENCES organizations(id),
+  plan_id INT NOT NULL REFERENCES plans(id),
+  status VARCHAR(20), renews_at TIMESTAMP
+);
+CREATE TABLE invoices (
+  id SERIAL PRIMARY KEY,
+  subscription_id INT NOT NULL REFERENCES subscriptions(id),
+  amount_cents INT, issued_at TIMESTAMP, paid BOOLEAN
+);</pre>
+      <p><a href="/#s=ztZNBS8NAEIX_yrCnBnKohXqop7SsGEzTmqZCoVC2ydCOJJu4s6mg-N-lEWOjpVXE28Ls7Pvem9kXocpSDES6TmmjhCt2aJgKLQYXruDHTAzEKJJeLCH2hoGEwmyUpmdlqdAMnaUGoBRmMvK9AKaRP_aiBdzKhbuvaJUj3HvR6MaLOhe9rgPhJIZwHgR1mbNq0y7PQ_9uLutiYlBZTFfKQuyP5Sz2xtOldq6WusVTMZqzHJgryhqlXr__odTm-YZ7RC_HfI2Gt1SeVT2MakUp-GHc6EEkr2Ukw5GctSPtUOrU3Xtjp7pq481tU2Sf6MfJS1M8YGL_Gbud4WXXcUGZZEs7TGE4mQTSC4-xZeqX21S_XBpKcJWgtrzHdIFRvR-PaHC15sRQ-aPN_VsIezunumq7zW22ylZ8OD0XDGp84nPLT3pXUIJn3RxaP8XViqjhU3lRaXsYMzFXX76mC6Wi1oiFK1JSGSZWDERZsN0YZPH6Bg">Open in the editor →</a> to export it as PNG, SVG, Mermaid or DBML.</p>
+    </section>
+    <section><h2>More examples</h2><div class="related"><a href="/examples/ecommerce/">E-commerce</a><a href="/examples/blog/">Blog / CMS</a><a href="/examples/social-network/">Social network</a><a href="/examples/project-management/">Project management</a><a href="/examples/inventory/">Inventory / warehouse</a></div></section>
+  </main>
+  <footer>
+    <div class="wrap">
+      <a href="/">SQL to ER Diagram</a>
+      <a href="/examples/">Schema examples</a>
+      <a href="https://github.com/royalbhati/sqltoerdiagram" target="_blank" rel="noopener">Open source on GitHub</a>
+      <span>Free · runs in your browser</span>
+    </div>
+  </footer>
+</body>
+</html>
