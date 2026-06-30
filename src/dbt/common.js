@@ -74,6 +74,35 @@ export function firstText(...values) {
 	return '';
 }
 
+export function deriveGroup({ kind = '', resourceType = '', pathQualifier = '', node = null, name = '' } = {}) {
+	const resourceKinds = [
+		firstText(resourceType).toLowerCase(),
+		firstText(kind).toLowerCase(),
+	];
+	for (const winner of ['source', 'seed', 'snapshot']) {
+		if (resourceKinds.includes(winner)) return winner;
+	}
+
+	const qualifier = firstText(pathQualifier);
+	const nodePath = firstText(node?.original_file_path, node?.path);
+	const pathText = qualifier || (nodePath ? stripTrailingFilename(nodePath) : '');
+	const segments = pathText.replace(/\\/g, '/').split('/').filter(Boolean);
+	if (segments.length >= 2) return segments[1];
+
+	const cleanName = firstText(name).toLowerCase();
+	if (/^stg_|^staging[_.]/.test(cleanName)) return 'staging';
+	if (/^int_|^intermediate[_.]/.test(cleanName)) return 'intermediate';
+	if (/^(fct|dim|mart|rpt|agg|fact)_/.test(cleanName)) return 'marts';
+	return '';
+}
+
+function stripTrailingFilename(value) {
+	const normalized = firstText(value).replace(/\\/g, '/');
+	const slash = normalized.lastIndexOf('/');
+	return slash < 0 ? '' : normalized.slice(0, slash);
+}
+
+
 export function normalizeTestName(name) {
 	const text = firstText(name);
 	if (!text) return '';
@@ -122,6 +151,7 @@ export function createEntry({
 		pathQualifier: firstText(pathQualifier),
 		baseName: firstText(baseName, defaultBase),
 		displayName: firstText(baseName, defaultBase),
+		group: deriveGroup({ kind, resourceType, pathQualifier, node, name }),
 		node,
 		columns: [],
 		columnsByKey: new Map(),
@@ -485,6 +515,7 @@ export function finalizeEntries(entries, rels) {
 	const tables = entries.map((entry) => {
 		const table = makeTable(entry.displayName);
 		for (const col of entry.columns) addColumn(table, col);
+		table.group = entry.group || '';
 		return table;
 	});
 	const model = finalize(tables, rels);

@@ -155,7 +155,11 @@ comes from `gh api user` (run `gh auth login` first) and is only needed for brow
 After you pick a project, an interactive run asks **what to generate** — ERD vs lineage — showing each with its relation count, and only offers modes that produce output: a project with FK relationships shows ERD; if it has none but its models have `ref()`/`source()` dependencies it goes straight to lineage; if neither has edges you get a tables-only ERD. `--lineage` skips the prompt; a non-interactive run defaults to the FK ERD.
 
 The generated page is the read-only canvas viewer: pan, zoom, **Fit**, and a dark/light
-toggle. It is fully offline — all JS/CSS is inlined and the model is embedded in the file.
+toggle. For dbt diagrams it also **colors tables by layer** (source / staging / intermediate /
+marts / seed / snapshot) with a legend, **collapses wide tables to the first 8 columns** — click
+the `▾ +N more` footer to expand one, or use **Expand all** / **Collapse all** in the toolbar —
+and shows a hint when column types are unavailable (yml fallback with no `catalog.json`).
+It is fully offline — all JS/CSS is inlined and the model is embedded in the file.
 The CLI builds the embed template on first run; you can also build it explicitly:
 
 ```bash

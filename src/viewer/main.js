@@ -1,5 +1,6 @@
 import { Diagram } from '../diagram.js';
 import { layout } from '../layout.js';
+import { isCollapsible, groupColor } from '../renderer.js';
 
 const THEME_KEY = 'dbt-erd-theme';
 const MIN_SCALE = 0.08;
@@ -14,6 +15,10 @@ const themeToggle = document.getElementById('theme-toggle');
 const fitButton = document.getElementById('fit');
 const zoomIn = document.getElementById('zoom-in');
 const zoomOut = document.getElementById('zoom-out');
+const expandAll = document.getElementById('expand-all');
+const collapseAll = document.getElementById('collapse-all');
+const legend = document.getElementById('legend');
+const typeHint = document.getElementById('type-hint');
 
 function clamp(value, min, max) {
 	return Math.max(min, Math.min(max, value));
@@ -67,6 +72,42 @@ function populateMeta(model, meta = {}) {
 	metaLine.textContent = parts.join(' · ');
 }
 
+function populateLegend(model) {
+	const groups = [...new Set(model.tables.map((table) => table.group).filter(Boolean))].sort();
+	legend.replaceChildren();
+
+	for (const group of groups) {
+		const item = document.createElement('span');
+		item.className = 'legend-item';
+
+		const swatch = document.createElement('span');
+		swatch.className = 'swatch';
+		swatch.style.backgroundColor = groupColor(group);
+
+		const label = document.createElement('span');
+		label.textContent = group;
+
+		item.append(swatch, label);
+		legend.append(item);
+	}
+}
+
+function maybeShowTypeHint(model, meta = {}) {
+	const { columns } = statsFor(model, meta);
+
+	if (meta.columnsTyped === 0 && columns > 0) {
+		typeHint.textContent = 'Column types unavailable — this diagram was built from dbt yml without a catalog. Run `dbt docs generate` (or use --path on a built project) for warehouse types.';
+		const dismiss = document.createElement('button');
+		dismiss.type = 'button';
+		dismiss.className = 'type-hint-dismiss';
+		dismiss.setAttribute('aria-label', 'Dismiss');
+		dismiss.textContent = '×';
+		dismiss.addEventListener('click', () => { typeHint.hidden = true; });
+		typeHint.appendChild(dismiss);
+		typeHint.hidden = false;
+	}
+}
+
 function syncThemeButton(diagram) {
 	const theme = diagram.themeName === 'light' ? 'light' : 'dark';
 	themeToggle.textContent = theme;
@@ -80,8 +121,11 @@ if (!payload?.model || !Array.isArray(payload.model.tables) || payload.model.tab
 	showEmpty();
 } else {
 	const model = payload.model;
+	for (const t of model.tables) t.collapsed = true;
 	layout(model, { dir: 'LR', spacing: 'comfortable' });
 	populateMeta(model, payload.meta || {});
+	populateLegend(model);
+	maybeShowTypeHint(model, payload.meta || {});
 
 	const d = new Diagram(canvas);
 	d.editable = false;
@@ -90,6 +134,23 @@ if (!payload?.model || !Array.isArray(payload.model.tables) || payload.model.tab
 	d.setTheme(readTheme() || 'dark');
 	d.start();
 	d.fit();
+	d.onRelayout = () => {
+		layout(model, { dir: 'LR', spacing: 'comfortable' }, d.hidden);
+		d.fit();
+	};
+
+	if (!model.tables.some(isCollapsible)) {
+		expandAll.hidden = true;
+		collapseAll.hidden = true;
+	}
+
+	expandAll.addEventListener('click', () => {
+		d.setAllCollapsed(false);
+	});
+
+	collapseAll.addEventListener('click', () => {
+		d.setAllCollapsed(true);
+	});
 	syncThemeButton(d);
 
 	themeToggle.addEventListener('click', () => {

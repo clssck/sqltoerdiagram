@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { parseArgs } from '../cli/args.js';
-import { injectModel } from '../cli/generate.js';
+import { countTypedColumns, injectModel } from '../cli/generate.js';
 import { buildDbtSearchQueries, cloneArgs, validateBranch } from '../cli/github.js';
 import { buildModeChoices } from '../cli/index.js';
 
@@ -71,6 +71,29 @@ test('injectModel replaces one erd-model marker with escaped JSON', () => {
 	assert.doesNotMatch(match[1], /</);
 	assert.match(match[1], /\\u003c\/script>/);
 	assert.deepEqual(JSON.parse(match[1]), payload);
+});
+
+test('countTypedColumns counts non-empty column types', () => {
+	assert.equal(countTypedColumns({
+		tables: [{
+			name: 'orders',
+			columns: [
+				{ name: 'id', type: 'integer' },
+				{ name: 'amount', type: ' numeric ' },
+				{ name: 'notes', type: '' }
+			]
+		}]
+	}), 2);
+
+	assert.equal(countTypedColumns({
+		tables: [{
+			name: 'orders',
+			columns: [
+				{ name: 'id', type: '' },
+				{ name: 'amount', type: '   ' }
+			]
+		}]
+	}), 0);
 });
 
 test('buildDbtSearchQueries scopes by owner type and chunks', () => {

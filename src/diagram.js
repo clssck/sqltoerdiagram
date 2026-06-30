@@ -1,8 +1,9 @@
 // Diagram controller: owns the camera, input handling (pan / zoom / drag),
 // the render loop, edge routing and export. Renders only when dirty and only
 // what is on screen.
-import { THEMES, rasterizeTable, columnY, measureTable, ROW_H, HEADER_H } from './renderer.js';
+import { THEMES, rasterizeTable, columnY, measureTable, ROW_H, HEADER_H, visibleColumns, tableFooter, isCollapsible } from './renderer.js';
 import { NOTE_COLORS, GROUP_COLORS, NOTE_ORDER, GROUP_ORDER, makeAnnotation } from './annotations.js';
+import { removeOverlaps } from './layout.js';
 
 export class Diagram {
  constructor(canvas) {
@@ -32,6 +33,7 @@ export class Diagram {
   this.pinnedKeys = null;        // Set of focused table + neighbour keys
   this.onZoom = null;
   this.onLayoutChange = null;    // fired after a drag / pan / zoom so positions persist
+  this.onRelayout = null;        // viewer hook: full re-layout after expand/collapse-all
   this.onEdit = null;            // callback({kind, tableKey, colName?, value})
   this.onAddColumn = null;       // callback(tableKey)
   this.editing = null;           // active inline editor
@@ -70,6 +72,39 @@ export class Diagram {
   this.hoverConn = null;
   this.markDirty();
   if (!keepCamera) {/* caller may fit */ }
+ }
+
+ // world-space hit test for a table's collapse-toggle footer row
+ _footerHit(t, sx, sy) {
+  if (!tableFooter(t)) return false;
+  const w = this.screenToWorld(sx, sy);
+  const fy = t.y + HEADER_H + visibleColumns(t).length * ROW_H;
+  return w.x >= t.x && w.x <= t.x + t.w && w.y >= fy && w.y <= fy + ROW_H;
+ }
+
+ // toggle one table's collapse; re-measure + nudge neighbours, keep positions
+ toggleCollapse(t) {
+  if (!isCollapsible(t)) return;
+  t.collapsed = !t.collapsed;
+  const d = measureTable(t);
+  t.w = d.w; t.h = d.h;
+  this.bitmaps.delete(t.key);
+  removeOverlaps(this.model, (k) => this.hidden.has(k));
+  this._tmapDirty = true;
+  this.markDirty();
+  this.onLayoutChange?.();
+ }
+
+ // expand (false) / collapse (true) every table, then full re-layout via the
+ // viewer hook (positions change a lot, so a fresh layout + fit reads best).
+ setAllCollapsed(collapsed) {
+  for (const t of this.model.tables) t.collapsed = collapsed;
+  for (const t of this.model.tables) { const d = measureTable(t); t.w = d.w; t.h = d.h; }
+  this.bitmaps.clear();
+  this._tmapDirty = true;
+  if (this.onRelayout) this.onRelayout();
+  else removeOverlaps(this.model, (k) => this.hidden.has(k));
+  this.markDirty();
  }
 
  // The table whose relationships should be emphasised: a click-pinned table
@@ -670,13 +705,13 @@ export class Diagram {
    if (t) {
     const w = this.screenToWorld(sx, sy);
     const idx = Math.floor((w.y - t.y - HEADER_H) / ROW_H);
-    if (idx >= 0 && idx < t.columns.length) conn = { t, colIndex: idx };
+    if (idx >= 0 && idx < visibleColumns(t).length) conn = { t, colIndex: idx };
    }
    const changed = (conn?.t !== this.hoverConn?.t) || (conn?.colIndex !== this.hoverConn?.colIndex);
    if (changed) { this.hoverConn = conn; this.markDirty(); }
    if (this._connectorAt(sx, sy)) c.style.cursor = 'crosshair';
    else if (this._annoChromeAt(sx, sy) || this._addButtonAt(sx, sy)) c.style.cursor = 'pointer';
-   else if (t) c.style.cursor = 'grab';
+   else if (t) c.style.cursor = this._footerHit(t, sx, sy) ? 'pointer' : 'grab';
    else if (this._noteAt(sx, sy) || this._groupAt(sx, sy)) c.style.cursor = 'grab';
    else c.style.cursor = 'default';
   });
@@ -808,6 +843,7 @@ export class Diagram {
   // 4) a table (before groups, so tables inside a group stay grabbable)
   const t = this.tableAt(sx, sy);
   if (t) {
+   if (this._footerHit(t, sx, sy)) { this.toggleCollapse(t); return; }
    if (this.selectedAnno) this.selectedAnno = null;
    if (additive) {                                   // Shift+click toggles selection
     if (this.selected.has(t)) this.selected.delete(t);
@@ -852,8 +888,9 @@ export class Diagram {
    const t = this.model.tables[i];
    if (!Number.isFinite(t.x) || this.hidden.has(t.key)) continue;
    if (wx >= t.x && wx <= t.x + t.w && wy >= t.y && wy <= t.y + t.h) {
+    const cols = visibleColumns(t);
     const idx = Math.floor((wy - t.y - HEADER_H) / ROW_H);
-    if (idx >= 0 && idx < t.columns.length) return { tableKey: t.key, col: t.columns[idx].name };
+    if (idx >= 0 && idx < cols.length) return { tableKey: t.key, col: cols[idx].name };
     return null;
    }
   }
@@ -1059,11 +1096,12 @@ export class Diagram {
    if (!Number.isFinite(t.x) || this.hidden.has(t.key)) continue;
    const ly = w.y - t.y;
    if (ly < HEADER_H) continue;
+   const cols = visibleColumns(t);
    const idx = Math.floor((ly - HEADER_H) / ROW_H);
-   if (idx < 0 || idx >= t.columns.length) continue;
+   if (idx < 0 || idx >= cols.length) continue;
    for (const p of this._connDots(t, idx)) {
     if (Math.hypot(w.x - p.x, w.y - p.y) <= r * 1.5) {
-     return { tableKey: t.key, col: t.columns[idx].name, side: p.side, wx: p.x, wy: p.y };
+     return { tableKey: t.key, col: cols[idx].name, side: p.side, wx: p.x, wy: p.y };
     }
    }
   }
@@ -1075,9 +1113,10 @@ export class Diagram {
   const t = this.tableAt(sx, sy);
   if (!t) return null;
   const w = this.screenToWorld(sx, sy);
+  const cols = visibleColumns(t);
   const idx = Math.floor((w.y - t.y - HEADER_H) / ROW_H);
-  if (idx < 0 || idx >= t.columns.length) return null;
-  return { tableKey: t.key, col: t.columns[idx].name };
+  if (idx < 0 || idx >= cols.length) return null;
+  return { tableKey: t.key, col: cols[idx].name };
  }
 
  _linkExists(fk, fc, tk, tc) {
@@ -1211,9 +1250,10 @@ export class Diagram {
   if (ly < HEADER_H) {
    return { table: t, kind: 'table', rect: { x: t.x, y: t.y, w: t.w, h: HEADER_H }, align: 'left', weight: 600 };
   }
+  const cols = visibleColumns(t);
   const idx = Math.floor((ly - HEADER_H) / ROW_H);
-  if (idx < 0 || idx >= t.columns.length) return null;
-  const col = t.columns[idx];
+  if (idx < 0 || idx >= cols.length) return null;
+  const col = cols[idx];
   const rowY = t.y + HEADER_H + idx * ROW_H;
   const split = t.x + t.w * 0.58;
   if (w.x >= split && col.type) {

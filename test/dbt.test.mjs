@@ -3,6 +3,7 @@ import { describe, test } from 'node:test';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { findDbtProjects, isDbtProject, mapDbtProject } from '../src/dbt/index.js';
+import { deriveGroup } from '../src/dbt/common.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const fixturesDir = path.join(__dirname, 'fixtures');
@@ -19,6 +20,16 @@ describe('dbt project detection', () => {
 
 	test('rejects non-dbt project directories clearly', async () => {
 		await assert.rejects(() => mapDbtProject(fixturesDir), /Not a dbt project: .*missing dbt_project\.yml/);
+	});
+});
+
+describe('dbt layer grouping', () => {
+	test('derives table groups from dbt kind, paths, and names', () => {
+		assert.equal(deriveGroup({ pathQualifier: 'models/staging/stg_x', name: 'stg_x' }), 'staging');
+		assert.equal(deriveGroup({ node: { original_file_path: 'models/marts/dim_x.sql' }, name: 'dim_x' }), 'marts');
+		assert.equal(deriveGroup({ kind: 'source', pathQualifier: 'models/staging', name: 'orders' }), 'source');
+		assert.equal(deriveGroup({ name: 'stg_orders' }), 'staging');
+		assert.equal(deriveGroup({ name: 'orders' }), '');
 	});
 });
 

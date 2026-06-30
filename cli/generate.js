@@ -45,6 +45,18 @@ export function injectModel(template, payload) {
 	return template.replace(MODEL_SCRIPT_RE, (_match, open, close) => `${open}${safeJson}${close}`);
 }
 
+export function countTypedColumns(model) {
+	let typed = 0;
+	for (const table of model?.tables || []) {
+		for (const column of table.columns || []) {
+			if (typeof column.type === 'string' && column.type.trim() !== '') {
+				typed += 1;
+			}
+		}
+	}
+	return typed;
+}
+
 export async function generate(projectDir, opts = {}) {
 	if (typeof opts.mapDbtProject !== 'function') {
 		throw new Error('generate requires opts.mapDbtProject');
@@ -52,6 +64,7 @@ export async function generate(projectDir, opts = {}) {
 
 	const log = opts.log || console.log;
 	const r = opts.mapped || await opts.mapDbtProject(projectDir, { lineage: Boolean(opts.lineage) });
+	const typed = countTypedColumns(r.model);
 	const payload = {
 		model: r.model,
 		meta: {
@@ -61,6 +74,7 @@ export async function generate(projectDir, opts = {}) {
 			source: r.source,
 			generatedAt: new Date().toISOString(),
 			stats: r.stats,
+			columnsTyped: typed,
 			account: opts.account || null,
 			repo: opts.repo || null,
 			branch: opts.branch || null
@@ -77,6 +91,9 @@ export async function generate(projectDir, opts = {}) {
 	log(`${r.stats.tables} tables, ${r.stats.relations} relations`);
 	if (r.stats.relations === 0 && r.mode === 'erd') {
 		log('No FK relationships found (no `relationships` tests). Re-run with --lineage for the model dependency graph.');
+	}
+	if (typed === 0 && r.stats.columns > 0) {
+		log('Column types unavailable (no catalog). For warehouse types, run `dbt docs generate` then re-generate, or point --path at a built project.');
 	}
 	if (opts.open && !openFile(outFile)) {
 		log(`Could not open ${outFile} automatically.`);

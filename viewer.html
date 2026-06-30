@@ -13,13 +13,17 @@
 			<div id="title-chip" class="title-chip">dbt ERD</div>
 			<div id="meta-line" class="meta-line">Read-only canvas viewer</div>
 		</div>
+		<div id="legend" class="legend" aria-label="Group legend"></div>
 		<div class="toolbar-actions" aria-label="Canvas controls">
+			<button id="expand-all" type="button">Expand all</button>
+			<button id="collapse-all" type="button">Collapse all</button>
 			<button id="theme-toggle" type="button" aria-label="Toggle dark or light theme">Theme</button>
 			<button id="fit" type="button">Fit</button>
 			<button id="zoom-out" type="button" aria-label="Zoom out">−</button>
 			<button id="zoom-in" type="button" aria-label="Zoom in">+</button>
 		</div>
 	</header>
+	<div id="type-hint" class="type-hint" hidden></div>
 	<div id="empty-state" class="empty-state" hidden>No diagram data</div>
 	<script type="application/json" id="erd-model">{}</script>
 	<script type="module" src="/src/viewer/main.js"></script>
