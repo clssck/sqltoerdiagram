@@ -27,7 +27,8 @@ test('parseArgs maps value and boolean flags', () => {
 		out: 'diagram.html',
 		open: true,
 		keep: true,
-		help: false
+		help: false,
+		build: false
 	});
 });
 
@@ -41,7 +42,8 @@ test('parseArgs maps repo and help aliases', () => {
 		out: null,
 		open: false,
 		keep: false,
-		help: true
+		help: true,
+		build: false
 	});
 	assert.equal(parseArgs(['--help']).help, true);
 });

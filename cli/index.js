@@ -19,6 +19,7 @@ import {
 } from './github.js';
 import { chooseFromList, formatRepo } from './prompt.js';
 import { selectInteractive } from './browse_tui.js';
+import { ensureDbtArtifacts } from '../src/dbt/build.js';
 import * as dbtMapper from '../src/dbt/index.js';
 
 function sortPaths(paths) {
@@ -185,6 +186,7 @@ async function cloneGenerate(nameWithOwner, opts, mapper, account) {
 			throw new Error(`No dbt_project.yml found in ${nameWithOwner}${branch ? ` (branch ${branch})` : ''}.`);
 		}
 		const projectDir = await chooseDbtProject(projects);
+		if (opts.build) ensureDbtArtifacts(projectDir, { log: console.log });
 		const mode = await chooseMode(projectDir, opts, mapper.mapDbtProject);
 		outFile = await generate(projectDir, {
 			lineage: mode.lineage,
@@ -214,6 +216,7 @@ async function runWithPath(opts, mapper) {
 		throw new Error(`No dbt_project.yml found under ${root}.`);
 	}
 	const projectDir = await chooseDbtProject(projects);
+	if (opts.build) ensureDbtArtifacts(projectDir, { log: console.log });
 	// --path is read-only: never checkout; just record the current branch (if any).
 	const branch = await localBranch(projectDir);
 	const mode = await chooseMode(projectDir, opts, mapper.mapDbtProject);

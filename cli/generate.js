@@ -93,7 +93,7 @@ export async function generate(projectDir, opts = {}) {
 		log('No FK relationships found (no `relationships` tests). Re-run with --lineage for the model dependency graph.');
 	}
 	if (typed === 0 && r.stats.columns > 0) {
-		log('Column types unavailable (no catalog). For warehouse types, run `dbt docs generate` then re-generate, or point --path at a built project.');
+		log('Column types unavailable (no catalog). Re-run with --build to run `dbt docs generate` and capture warehouse column types.');
 	}
 	if (opts.open && !openFile(outFile)) {
 		log(`Could not open ${outFile} automatically.`);

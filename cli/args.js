@@ -8,6 +8,7 @@ Options:
   --branch <name>     Clone/diagram a specific branch (default: the repo's default)
   --all               Browse all accessible repos (default: only repos with dbt)
   --lineage           Render dbt model dependency lineage instead of FK ERD
+  --build             Run dbt (deps + docs generate) first to capture column types (writes target/)
   --out <file>        Output HTML file (default: <project>.erd.html)
   --open              Open the generated HTML file after writing it
   --keep              Keep a cloned temporary repository on disk
@@ -18,6 +19,7 @@ const VALUE_FLAGS = new Set(['--path', '--repo', '--out', '--branch']);
 const BOOLEAN_FLAGS = new Map([
   ['--all', 'all'],
   ['--lineage', 'lineage'],
+  ['--build', 'build'],
   ['--open', 'open'],
   ['--keep', 'keep'],
   ['--help', 'help'],
@@ -31,6 +33,7 @@ function defaults() {
     branch: null,
     all: false,
     lineage: false,
+    build: false,
     out: null,
     open: false,
     keep: false,
