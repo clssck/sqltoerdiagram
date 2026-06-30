@@ -1,20 +1,16 @@
-# SQL to ER Diagram
+# dbt-erd — dbt → interactive ER diagrams
 
-**A free, open-source online ERD generator.** Paste a SQL schema (`CREATE TABLE`
-statements) → get a clean, interactive entity-relationship diagram.
+**A local, [bun](https://bun.sh)-native CLI that turns your dbt projects into self-contained, interactive ER (and lineage) diagrams.** It detects your GitHub account, browses the repos that actually contain dbt (your own, your orgs', and ones shared with you), lets you pick one, and writes a single offline `.html` — the same interactive canvas as [sqltoerdiagram.com](https://sqltoerdiagram.com), but built from **dbt model metadata** instead of a pasted SQL file.
 
-![deps](https://img.shields.io/badge/deps-2-blue) ![bundle](https://img.shields.io/badge/bundle-32KB%20gzip-brightgreen)
+> **Built on [royalbhati/sqltoerdiagram](https://github.com/royalbhati/sqltoerdiagram)** by [**Royal Bhati**](https://github.com/royalbhati) (MIT) — the SQL→ER canvas app, parser, layout, and renderer are his. The `dbt-erd` CLI (`cli/`, `src/dbt/`) and the read-only single-file viewer are the additions in this fork. Cheers, Royal 🙏
 
-**100% local · no signup · no upload.** It runs entirely in your browser, so your
-schema never leaves your machine — no server, no backend. Live at
-**[sqltoerdiagram.com](https://sqltoerdiagram.com)**.
+**Local & read-only.** It reads your dbt artifacts/files and writes one HTML file to disk — it never modifies the source project or pushes to GitHub. (GitHub modes clone shallowly into a temp dir, then delete it.)
 
-## Why
+→ **[Jump to the dbt-erd CLI ↓](#the-dbt-erd-cli)**
 
-Every other SQL-diagram tool is either paywalled, ugly, or slow. SQL to ER Diagram is
-a single static page that stays smooth at **hundreds of tables**, edits your SQL
-two-way, and shares a whole diagram in a single link — with no account and nothing
-leaving your browser.
+## The SQL → ER app (the engine)
+
+The underlying tool is a single static page that turns pasted `CREATE TABLE` DDL into a clean, interactive diagram — smooth at **hundreds of tables**, with two-way SQL editing and link sharing, nothing leaving your browser. `dbt-erd` reuses its canvas renderer and layout.
 
 ## Features
 
@@ -98,7 +94,7 @@ bun run preview  # preview the production build locally
 - **Netlify / Vercel / Cloudflare Pages** — build command `bun run build`, publish dir `dist`.
 - **Any web server / S3 bucket** — just upload the contents of `dist/`.
 
-## dbt → ER diagram (local CLI)
+## The dbt-erd CLI
 
 `dbt-erd` is a local, dbt-specialized CLI that turns a **dbt project** into the same
 self-contained, interactive canvas ERD — no SQL file, no hosting. It reads your dbt
@@ -200,4 +196,4 @@ Select **BigQuery** from the dialect dropdown to work with BigQuery SQL instead 
 
 ## License
 
-[MIT](./LICENSE) © Royal Bhati. Fork it, self-host it, add your own SQL dialects — go for it.
+[MIT](./LICENSE) © [**Royal Bhati**](https://github.com/royalbhati) for the original [sqltoerdiagram](https://github.com/royalbhati/sqltoerdiagram). The `dbt-erd` additions in this fork are MIT too. Fork it, self-host it, point it at your dbt projects — go for it.
