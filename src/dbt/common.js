@@ -74,26 +74,67 @@ export function firstText(...values) {
 	return '';
 }
 
-export function deriveGroup({ kind = '', resourceType = '', pathQualifier = '', node = null, name = '' } = {}) {
-	const resourceKinds = [
-		firstText(resourceType).toLowerCase(),
-		firstText(kind).toLowerCase(),
-	];
-	for (const winner of ['source', 'seed', 'snapshot']) {
-		if (resourceKinds.includes(winner)) return winner;
+// Candidate grouping dimensions for one entry. The viewer's "Group by" dropdown
+// offers whichever of these has real structure; each value is '' when that
+// dimension doesn't apply. Derived from dbt metadata (dbtName/baseName/path/
+// schema) — NOT the final display name, which may be schema-qualified and would
+// skew token grouping toward the schema.
+export function buildGroupKeys({ kind = '', resourceType = '', name = '', dbtName = '', sourceName = '', baseName = '', schema = '', pathQualifier = '', node = null } = {}) {
+	return {
+		domain: deriveDomain({ kind, resourceType, name, dbtName, sourceName, baseName }),
+		layer: deriveLayer({ kind, resourceType, pathQualifier, node, name: dbtName || name }),
+		folder: deriveFolder({ pathQualifier, node }),
+		schema: firstText(schema).toLowerCase(),
+	};
+}
+
+// Layer-ish prefixes stripped to find the business-domain token in a model name.
+const LAYER_PREFIX = /^(stg|staging|int|intermediate|fct|fact|dim|mart|marts|rpt|agg|dwh|dw|base|src|source|raw|snap|snapshot|seed|ref|final|tmp|temp)[_.]/i;
+
+// Business domain: the leading name token after stripping layer prefixes
+// (e.g. stg_gosilico_calibration_x -> "gosilico"). For sources, the source group.
+function deriveDomain({ kind, resourceType, name, dbtName, sourceName, baseName }) {
+	const kinds = [firstText(resourceType).toLowerCase(), firstText(kind).toLowerCase()];
+	if (kinds.includes('source') && firstText(sourceName)) {
+		return firstText(sourceName).toLowerCase().split(/[_.]/).filter(Boolean)[0] || '';
 	}
+	let n = firstText(dbtName, name, baseName).toLowerCase();
+	let prev;
+	do { prev = n; n = n.replace(LAYER_PREFIX, ''); } while (n !== prev);
+	const token = n.split(/[_.]/).filter(Boolean)[0];
+	if (token) return token;
+	return firstText(dbtName, name).toLowerCase().split(/[_.]/).filter(Boolean)[0] || '';
+}
 
-	const qualifier = firstText(pathQualifier);
-	const nodePath = firstText(node?.original_file_path, node?.path);
-	const pathText = qualifier || (nodePath ? stripTrailingFilename(nodePath) : '');
-	const segments = pathText.replace(/\\/g, '/').split('/').filter(Boolean);
+// dbt stage: kind wins for source/seed/snapshot, else the first model subfolder,
+// else a name-prefix guess.
+function deriveLayer({ kind, resourceType, pathQualifier, node, name }) {
+	const kinds = [firstText(resourceType).toLowerCase(), firstText(kind).toLowerCase()];
+	for (const winner of ['source', 'seed', 'snapshot']) {
+		if (kinds.includes(winner)) return winner;
+	}
+	const segments = pathSegments(pathQualifier, node);
 	if (segments.length >= 2) return segments[1];
-
 	const cleanName = firstText(name).toLowerCase();
 	if (/^stg_|^staging[_.]/.test(cleanName)) return 'staging';
 	if (/^int_|^intermediate[_.]/.test(cleanName)) return 'intermediate';
 	if (/^(fct|dim|mart|rpt|agg|fact)_/.test(cleanName)) return 'marts';
 	return '';
+}
+
+// On-disk folder organization: the model path below the root models/ dir
+// (e.g. models/staging/stripe -> "staging/stripe").
+function deriveFolder({ pathQualifier, node }) {
+	const segments = pathSegments(pathQualifier, node);
+	if (segments.length <= 1) return '';
+	return segments.slice(1).join('/');
+}
+
+function pathSegments(pathQualifier, node) {
+	const qualifier = firstText(pathQualifier);
+	const nodePath = firstText(node?.original_file_path, node?.path);
+	const pathText = qualifier || (nodePath ? stripTrailingFilename(nodePath) : '');
+	return pathText.replace(/\\/g, '/').split('/').filter(Boolean);
 }
 
 function stripTrailingFilename(value) {
@@ -151,7 +192,7 @@ export function createEntry({
 		pathQualifier: firstText(pathQualifier),
 		baseName: firstText(baseName, defaultBase),
 		displayName: firstText(baseName, defaultBase),
-		group: deriveGroup({ kind, resourceType, pathQualifier, node, name }),
+		groups: buildGroupKeys({ kind, resourceType, name, dbtName, sourceName, baseName, schema, pathQualifier, node }),
 		node,
 		columns: [],
 		columnsByKey: new Map(),
@@ -515,7 +556,7 @@ export function finalizeEntries(entries, rels) {
 	const tables = entries.map((entry) => {
 		const table = makeTable(entry.displayName);
 		for (const col of entry.columns) addColumn(table, col);
-		table.group = entry.group || '';
+		table.groups = entry.groups || {};
 		return table;
 	});
 	const model = finalize(tables, rels);

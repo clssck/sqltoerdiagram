@@ -3,7 +3,7 @@ import { describe, test } from 'node:test';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { findDbtProjects, isDbtProject, mapDbtProject } from '../src/dbt/index.js';
-import { deriveGroup } from '../src/dbt/common.js';
+import { buildGroupKeys } from '../src/dbt/common.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const fixturesDir = path.join(__dirname, 'fixtures');
@@ -23,13 +23,29 @@ describe('dbt project detection', () => {
 	});
 });
 
-describe('dbt layer grouping', () => {
-	test('derives table groups from dbt kind, paths, and names', () => {
-		assert.equal(deriveGroup({ pathQualifier: 'models/staging/stg_x', name: 'stg_x' }), 'staging');
-		assert.equal(deriveGroup({ node: { original_file_path: 'models/marts/dim_x.sql' }, name: 'dim_x' }), 'marts');
-		assert.equal(deriveGroup({ kind: 'source', pathQualifier: 'models/staging', name: 'orders' }), 'source');
-		assert.equal(deriveGroup({ name: 'stg_orders' }), 'staging');
-		assert.equal(deriveGroup({ name: 'orders' }), '');
+describe('dbt group keys', () => {
+	test('derives domain/layer/folder from dbt metadata', () => {
+		const stg = buildGroupKeys({ pathQualifier: 'models/staging/stripe', name: 'stg_orders', dbtName: 'stg_orders' });
+		assert.equal(stg.domain, 'orders');
+		assert.equal(stg.layer, 'staging');
+		assert.equal(stg.folder, 'staging/stripe');
+
+		const mart = buildGroupKeys({ node: { original_file_path: 'models/marts/dim_x.sql' }, name: 'dim_x', dbtName: 'dim_x' });
+		assert.equal(mart.layer, 'marts');
+		assert.equal(mart.folder, 'marts');
+	});
+
+	test('strips layer prefixes to the business-domain token', () => {
+		assert.equal(buildGroupKeys({ name: 'stg_gosilico_calibration_x', dbtName: 'stg_gosilico_calibration_x' }).domain, 'gosilico');
+		// name-prefix layer fallback when there is no folder
+		assert.equal(buildGroupKeys({ name: 'stg_orders', dbtName: 'stg_orders' }).layer, 'staging');
+	});
+
+	test('kind wins for sources; source domain comes from the source name; schema lowercased', () => {
+		const src = buildGroupKeys({ kind: 'source', resourceType: 'source', sourceName: 'Stripe', name: 'orders', dbtName: 'orders' });
+		assert.equal(src.layer, 'source');
+		assert.equal(src.domain, 'stripe');
+		assert.equal(buildGroupKeys({ schema: 'Analytics', name: 'orders', dbtName: 'orders' }).schema, 'analytics');
 	});
 });
 

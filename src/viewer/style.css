@@ -127,6 +127,41 @@ button:focus-visible {
 	outline: none;
 }
 
+.group-by {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	font-size: 11px;
+	color: rgba(232, 237, 244, 0.68);
+}
+
+.group-by[hidden] {
+	display: none;
+}
+
+:root[data-theme="light"] .group-by {
+	color: rgba(28, 37, 48, 0.62);
+}
+
+.group-by select {
+	height: 32px;
+	border: 1px solid rgba(148, 163, 184, 0.25);
+	border-radius: 10px;
+	background: rgba(255, 255, 255, 0.08);
+	color: inherit;
+	font: inherit;
+	font-size: 12px;
+	font-weight: 650;
+	padding: 0 6px;
+	cursor: pointer;
+}
+
+.group-by select:hover,
+.group-by select:focus-visible {
+	border-color: rgba(90, 167, 255, 0.7);
+	outline: none;
+}
+
 #theme-toggle {
 	min-width: 64px;
 	text-transform: capitalize;

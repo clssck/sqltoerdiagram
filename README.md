@@ -128,6 +128,7 @@ bun link && dbt-erd --path /path/to/dbt_project
 | `--branch <name>` | Diagram a specific branch. Without it, browse/`--repo` prompt you to pick (default branch first) on a TTY, else use the repo default. `--path` only records the currently checked-out branch (never checks out). |
 | `--all` | Browse **all** accessible repos. By default browse shows **only repos containing a `dbt_project.yml`** (found via GitHub code search across you + your orgs + collaborator repos, including nested ones in monorepos). |
 | `--lineage` | Force the **lineage** view (model dependency DAG) — headless override. Interactively you're asked instead (see below). |
+| `--build` | Run `dbt deps` + `dbt docs generate` in the project first so the diagram has real warehouse column types (writes dbt's `target/`; needs dbt + your warehouse profile). Without it, dbt-erd is read-only and uses existing artifacts or the yml fallback. |
 | `--out <file>` | Output path (default `<project>.erd.html`). |
 | `--open` | Open the generated file when done. |
 | `--keep` | Keep the temporary clone. |
@@ -155,11 +156,13 @@ comes from `gh api user` (run `gh auth login` first) and is only needed for brow
 After you pick a project, an interactive run asks **what to generate** — ERD vs lineage — showing each with its relation count, and only offers modes that produce output: a project with FK relationships shows ERD; if it has none but its models have `ref()`/`source()` dependencies it goes straight to lineage; if neither has edges you get a tables-only ERD. `--lineage` skips the prompt; a non-interactive run defaults to the FK ERD.
 
 The generated page is the read-only canvas viewer: pan, zoom, **Fit**, and a dark/light
-toggle. For dbt diagrams it also **colors tables by layer** (source / staging / intermediate /
-marts / seed / snapshot) with a legend, **collapses wide tables to the first 8 columns** — click
-the `▾ +N more` footer to expand one, or use **Expand all** / **Collapse all** in the toolbar —
-and shows a hint when column types are unavailable (yml fallback with no `catalog.json`).
-It is fully offline — all JS/CSS is inlined and the model is embedded in the file.
+toggle. A **Group by** dropdown adaptively clusters the tables — pick **Domain** (business
+area from model names), **Layer** (dbt stage), **Folder**, or **Schema**, and related tables
+pack into labeled, colored blocks instead of a hairball; only dimensions with real structure
+are offered, and **None** (the default) is the flat view. Wide tables **collapse to the first
+8 columns** — click the `▾ +N more` footer to expand one, or use **Expand all** / **Collapse
+all**. When column types are missing (yml fallback, no `catalog.json`) it shows a hint to re-run
+with `--build`. It is fully offline — all JS/CSS is inlined and the model is embedded in the file.
 The CLI builds the embed template on first run; you can also build it explicitly:
 
 ```bash

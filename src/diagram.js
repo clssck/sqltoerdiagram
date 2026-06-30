@@ -1,7 +1,7 @@
 // Diagram controller: owns the camera, input handling (pan / zoom / drag),
 // the render loop, edge routing and export. Renders only when dirty and only
 // what is on screen.
-import { THEMES, rasterizeTable, columnY, measureTable, ROW_H, HEADER_H, visibleColumns, tableFooter, isCollapsible } from './renderer.js';
+import { THEMES, rasterizeTable, columnY, measureTable, ROW_H, HEADER_H, visibleColumns, tableFooter, isCollapsible, groupColor } from './renderer.js';
 import { NOTE_COLORS, GROUP_COLORS, NOTE_ORDER, GROUP_ORDER, makeAnnotation } from './annotations.js';
 import { removeOverlaps } from './layout.js';
 
@@ -104,6 +104,14 @@ export class Diagram {
   this._tmapDirty = true;
   if (this.onRelayout) this.onRelayout();
   else removeOverlaps(this.model, (k) => this.hidden.has(k));
+  this.markDirty();
+ }
+
+ // Force every table bitmap to re-rasterize next frame (e.g. after a group
+ // change alters header tint/width). Re-measuring/layout is the caller's job.
+ invalidateBitmaps() {
+  this.bitmaps.clear();
+  this._tmapDirty = true;
   this.markDirty();
  }
 
@@ -222,6 +230,9 @@ export class Diagram {
   const margin = 50;
   const cull = { x0: vx0 - margin, y0: vy0 - margin, x1: vx1 + margin, y1: vy1 + margin };
 
+  // spatial cluster bands sit furthest back
+  this._drawGroupBands(cull);
+
   // group boxes sit behind everything
   for (const a of this.annotations) if (a.type === 'group') this._drawGroup(a, cull);
 
@@ -312,6 +323,43 @@ export class Diagram {
  _connDots(t, idx) {
   const y = t.y + HEADER_H + idx * ROW_H + ROW_H / 2;
   return [{ x: t.x, y, side: 'left' }, { x: t.x + t.w, y, side: 'right' }];
+ }
+
+ // Translucent labeled blocks behind each spatial cluster (compound layout).
+ // Recomputed from live table positions so bands track drags. No-op unless a
+ // table carries a `group` (the default / "None" view draws nothing).
+ _drawGroupBands(cull) {
+  const boxes = new Map();
+  for (const t of this.model.tables) {
+   if (!t.group || !Number.isFinite(t.x) || this.hidden.has(t.key)) continue;
+   let b = boxes.get(t.group);
+   if (!b) { b = { x0: Infinity, y0: Infinity, x1: -Infinity, y1: -Infinity }; boxes.set(t.group, b); }
+   b.x0 = Math.min(b.x0, t.x); b.y0 = Math.min(b.y0, t.y);
+   b.x1 = Math.max(b.x1, t.x + t.w); b.y1 = Math.max(b.y1, t.y + t.h);
+  }
+  if (!boxes.size) return;
+  const { ctx, cam, theme } = this;
+  const pad = 26, labelStrip = 26;
+  for (const [name, b] of boxes) {
+   const x = b.x0 - pad, y = b.y0 - pad - labelStrip;
+   const w = (b.x1 - b.x0) + pad * 2, h = (b.y1 - b.y0) + pad * 2 + labelStrip;
+   if (x > cull.x1 || x + w < cull.x0 || y > cull.y1 || y + h < cull.y0) continue;
+   const col = groupColor(name) || theme.edge;
+   ctx.save();
+   roundRectPath(ctx, x, y, w, h, 16);
+   ctx.fillStyle = hexA(col, 0.07);
+   ctx.fill();
+   ctx.lineWidth = 1.5 / cam.scale;
+   ctx.setLineDash([9 / cam.scale, 6 / cam.scale]);
+   ctx.strokeStyle = hexA(col, 0.55);
+   ctx.stroke();
+   ctx.setLineDash([]);
+   ctx.font = '600 16px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
+   ctx.textBaseline = 'middle';
+   ctx.fillStyle = col;
+   ctx.fillText(name, x + 14, y + labelStrip / 2);
+   ctx.restore();
+  }
  }
 
  // ---- annotation rendering ----
@@ -1421,6 +1469,7 @@ export class Diagram {
   const savedCam = this.cam;
   this.cam = { x: 0, y: 0, scale: 1 };
   const all = { x0: -1e9, y0: -1e9, x1: 1e9, y1: 1e9 };
+  this._drawGroupBands(all);
   for (const a of this.annotations) if (a.type === 'group') this._drawGroup(a, all);
   this._drawEdges(-1e9, -1e9, 1e9, 1e9);
   for (const t of this.model.tables) {

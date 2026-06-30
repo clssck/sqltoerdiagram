@@ -1,6 +1,7 @@
 import { Diagram } from '../diagram.js';
 import { layout } from '../layout.js';
 import { isCollapsible, groupColor } from '../renderer.js';
+import { availableGroupModes, applyGroupMode } from '../grouping.js';
 
 const THEME_KEY = 'dbt-erd-theme';
 const MIN_SCALE = 0.08;
@@ -19,6 +20,7 @@ const expandAll = document.getElementById('expand-all');
 const collapseAll = document.getElementById('collapse-all');
 const legend = document.getElementById('legend');
 const typeHint = document.getElementById('type-hint');
+const groupBy = document.getElementById('group-by');
 
 function clamp(value, min, max) {
 	return Math.max(min, Math.min(max, value));
@@ -96,7 +98,7 @@ function maybeShowTypeHint(model, meta = {}) {
 	const { columns } = statsFor(model, meta);
 
 	if (meta.columnsTyped === 0 && columns > 0) {
-		typeHint.textContent = 'Column types unavailable — this diagram was built from dbt yml without a catalog. Run `dbt docs generate` (or use --path on a built project) for warehouse types.';
+		typeHint.textContent = 'Column types unavailable — this diagram was built from dbt yml without a catalog. Re-run dbt-erd with --build to run `dbt docs generate` and embed real warehouse column types.';
 		const dismiss = document.createElement('button');
 		dismiss.type = 'button';
 		dismiss.className = 'type-hint-dismiss';
@@ -122,6 +124,7 @@ if (!payload?.model || !Array.isArray(payload.model.tables) || payload.model.tab
 } else {
 	const model = payload.model;
 	for (const t of model.tables) t.collapsed = true;
+	applyGroupMode(model.tables, 'none');   // default flat; any stale payload group is cleared
 	layout(model, { dir: 'LR', spacing: 'comfortable' });
 	populateMeta(model, payload.meta || {});
 	populateLegend(model);
@@ -151,6 +154,27 @@ if (!payload?.model || !Array.isArray(payload.model.tables) || payload.model.tab
 	collapseAll.addEventListener('click', () => {
 		d.setAllCollapsed(true);
 	});
+
+	const groupModes = availableGroupModes(model.tables);
+	const groupByWrap = groupBy.closest('.group-by');
+	if (groupModes.length === 0) {
+		if (groupByWrap) groupByWrap.hidden = true;
+	} else {
+		for (const m of [{ key: 'none', label: 'None' }, ...groupModes]) {
+			const opt = document.createElement('option');
+			opt.value = m.key;
+			opt.textContent = m.count ? `${m.label} (${m.count})` : m.label;
+			groupBy.append(opt);
+		}
+		groupBy.value = 'none';
+		groupBy.addEventListener('change', () => {
+			applyGroupMode(model.tables, groupBy.value);
+			layout(model, { dir: 'LR', spacing: 'comfortable' }, d.hidden);
+			d.invalidateBitmaps();
+			populateLegend(model);
+			d.fit();
+		});
+	}
 	syncThemeButton(d);
 
 	themeToggle.addEventListener('click', () => {

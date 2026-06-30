@@ -13,8 +13,8 @@ import { measureTable } from './renderer.js';
 
 const PRESETS = {
   comfortable: { nodesep: 36, ranksep: 130, edgesep: 24 },
-  compact:     { nodesep: 22, ranksep: 80,  edgesep: 14 },
-  spacious:    { nodesep: 60, ranksep: 200, edgesep: 36 },
+  compact: { nodesep: 22, ranksep: 80, edgesep: 14 },
+  spacious: { nodesep: 60, ranksep: 200, edgesep: 36 },
 };
 
 export function layout(model, opts = {}, hidden = null) {
@@ -39,7 +39,10 @@ export function layout(model, opts = {}, hidden = null) {
     if (f !== t) { bump(f); bump(t); }
   }
 
-  const g = new dagre.graphlib.Graph({ multigraph: true });
+  // Compound clustering: when tables carry a `group`, pack each group together
+  // via dagre parent nodes (de-spiders dense lineage DAGs). Inert when ungrouped.
+  const clustered = model.tables.some((t) => !isHidden(t.key) && t.group);
+  const g = new dagre.graphlib.Graph({ multigraph: true, compound: clustered });
   g.setGraph({
     rankdir: dir,
     nodesep: preset.nodesep,
@@ -55,6 +58,15 @@ export function layout(model, opts = {}, hidden = null) {
   for (const t of model.tables) {
     if (isHidden(t.key)) continue;             // hidden tables aren't laid out
     g.setNode(t.key, { width: t.w, height: t.h });
+  }
+  if (clustered) {
+    const seen = new Set();
+    for (const t of model.tables) {
+      if (isHidden(t.key) || !t.group) continue;
+      const cl = 'cluster::' + t.group;
+      if (!seen.has(cl)) { g.setNode(cl, {}); seen.add(cl); }
+      g.setParent(t.key, cl);
+    }
   }
   let e = 0;
   for (const r of model.relations) {
@@ -81,7 +93,7 @@ export function layout(model, opts = {}, hidden = null) {
     }
   }
 
-  placeOrphans(model, isHidden);
+  if (!clustered) placeOrphans(model, isHidden);
   removeOverlaps(model, isHidden);
 }
 
